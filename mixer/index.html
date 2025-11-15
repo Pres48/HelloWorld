@@ -1,227 +1,222 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
 <title>Stuffed Animal Mixer</title>
 
 <style>
+  :root {
+    --accent-1: #1a92b6;
+    --accent-2: #6cd4b4;
+    --panel: #ffffffdd;
+    --dashed: #7fd6ff;
+    --scale: 1;
+  }
+
+  html,body { height:100%; margin:0; }
   body {
     font-family: "Comic Sans MS", "Fredoka", sans-serif;
     background: linear-gradient(#e3fff1, #c7e8ff);
-    margin: 0;
-    padding: 20px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
+    display:flex; flex-direction:column; align-items:center; padding:20px; box-sizing:border-box;
   }
 
-  h1 {
-    font-size: 40px;
-    margin-bottom: 20px;
-    color: #1a92b6;
-    text-shadow: 2px 2px #ffffff;
-  }
+  h1 { margin:0 0 18px 0; color:var(--accent-1); font-size:40px; text-shadow:2px 2px #fff; }
 
-  /* Layout container */
-  #layout {
-    display: flex;
-    gap: 30px;
-    width: 100%;
-    max-width: 1200px;
-    justify-content: center;
+  .page-row {
+    display:flex;
+    gap:40px; /* more gap so carousel & preview don't touch */
+    width:100%;
+    max-width:1200px;
+    justify-content:center;
+    align-items:flex-start;
   }
 
   /* Tabs */
+  #tabs { display:flex; flex-direction:column; gap:12px; width:160px; z-index:3; }
   #tabs button {
-    background: #6cd4b4;
-    border: none;
-    padding: 10px;
-    border-radius: 12px;
-    font-size: 16px;
-    margin-bottom: 10px;
-    cursor: pointer;
-    font-weight: bold;
-    color: white;
-    width: 150px;
-    box-shadow: 0 3px 0 #4aa88b;
-    transition: transform 0.1s;
+    background:var(--accent-2); color:#fff; border:none; padding:12px; border-radius:14px;
+    font-weight:700; cursor:pointer; box-shadow:0 3px 0 #4aa88b;
   }
+  #tabs button.active { transform: translateY(-2px); outline: 3px solid rgba(255,255,255,0.35); }
 
-  #tabs button:hover { transform: scale(1.07); }
-
-  /* Carousel box */
-  #carousel-area {
-    width: 240px;
-  }
-
+  /* Carousel */
+  #carousel-area { width:320px; z-index:3; display:flex; flex-direction:column; align-items:center; }
   .carousel {
-    display: none;
-    flex-direction: column;
-    align-items: center;
-    background: #ffffffaa;
-    padding: 15px;
-    border-radius: 15px;
-    box-shadow: 0 4px 10px #00000020;
-    border: 3px dashed #7fd6ff;
+    width:320px; height:380px; background:var(--panel); border-radius:16px; padding:16px;
+    border:3px dashed var(--dashed); box-shadow:0 8px 18px rgba(0,0,0,0.12);
+    display:flex; flex-direction:column; align-items:center; justify-content:space-between;
   }
-
+  .carousel h3 { margin:0; color:var(--accent-1); font-weight:800; }
   .carousel img {
-    width: 160px;
-    height: 160px;
-    background: white;
-    border: 3px solid #b8edff;
-    border-radius: 15px;
-    padding: 10px;
-    margin-bottom: 10px;
+    width:240px; height:240px; object-fit:contain; background:#fff; border-radius:14px; padding:8px;
+    border:3px solid #cff0ff; box-shadow:0 6px 12px rgba(0,0,0,.12);
   }
+  .controls { display:flex; gap:10px; }
 
-  .carousel button {
-    background: #55c2ff;
-    box-shadow: 0 3px 0 #3a8cb8;
-  }
-
-  /* =============== PREVIEW AREA (responsive) =============== */
-  #preview-wrapper {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-  }
-
+  /* Preview */
+  .preview-wrap { display:flex; flex-direction:column; align-items:center; gap:12px; z-index:3; }
   #preview-area {
-    position: relative;
-    width: 100%;
-    max-width: 520px;   /* YOUR CHOSEN OPTION C */
-    aspect-ratio: 520 / 640;
-    overflow: hidden;
-    background: #ffffffaa;
-    border: 4px solid #7fe6c9;
-    border-radius: 20px;
-    box-shadow: 0 5px 15px #00000030;
-  }
-
-  /* Base coordinate system (520×640), scaled uniformly */
-  .part {
-    position: absolute;
+    width:100%;
+    max-width:520px;            /* base width */
+    aspect-ratio: 520 / 640;    /* keeps 520x640 proportions */
+    background:var(--panel);
+    border-radius:22px;
+    border:5px solid #7fe6c9;
+    box-shadow:0 10px 30px rgba(0,0,0,0.14);
+    position:relative;
+    overflow:visible;
     transform-origin: top left;
   }
 
-  /* Your exact coordinates */
+  /* Note: parts are positioned using base coordinates (520x640).
+     We use transform: scale(var(--scale)) to scale them uniformly. */
+  .part {
+    position:absolute;
+    transform-origin: top left;
+    transform: scale(var(--scale));
+    pointer-events:none;
+  }
+
+  /* === EXACT positions you provided (base 520x640) === */
+
+  /* Legs (behind body) */
   #left-leg  { width:260px; top:400px; left:50px;  z-index:1; }
   #right-leg { width:260px; top:400px; left:210px; z-index:1; }
 
+  /* Body (middle) */
   #body      { width:360px; top:165px; left:80px;  z-index:2; }
 
+  /* Arms (in front of body) */
   #left-arm  { width:240px; top:210px; left:-10px; z-index:3; }
   #right-arm { width:240px; top:210px; left:290px; z-index:3; }
 
+  /* Head (topmost) */
   #head      { width:360px; top:-30px; left:80px;  z-index:4; }
 
-  /* Buttons under preview */
-  #action-buttons {
-    margin-top: 20px;
-    display: flex;
-    gap: 20px;
+  /* Action buttons under preview */
+  #action-row { display:flex; gap:14px; justify-content:center; margin-top:10px; }
+  .action-btn {
+    padding:12px 16px; border-radius:14px; background:var(--accent-2); color:white; font-weight:800; border:none;
+    box-shadow:0 4px 0 #4aa88b; cursor:pointer;
   }
 
-  #action-buttons button {
-    background: #6cd4b4;
-    padding: 12px 20px;
-    border-radius: 15px;
-    font-size: 18px;
-    color: white;
-    border: none;
-    cursor: pointer;
-    font-weight: bold;
-    box-shadow: 0 3px 0 #4aa88b;
+  /* Bubbles (background decoration) */
+  .bubbles{ position:fixed; left:0; top:0; width:100%; height:100%; pointer-events:none; z-index:0; }
+  .bubble{ position:absolute; border-radius:50%; background:rgba(255,255,255,0.6); filter:blur(6px); mix-blend-mode:overlay; opacity:.9; animation: floatUp linear infinite; }
+  @keyframes floatUp { from{ transform: translateY(120vh) scale(1);} to{ transform: translateY(-40vh) scale(.9);} }
+
+  /* Responsive tweaks: adjust scale limits if screen is tiny */
+  @media (max-width:520px){
+    /* we still use uniform scale, but ensure preview area doesn't become tiny */
+    #preview-area { max-width: 420px; }
   }
 </style>
 </head>
-
 <body>
 <h1>Stuffed Animal Mixer</h1>
 
-<div id="layout">
+<!-- bubbles container -->
+<div class="bubbles" aria-hidden="true"></div>
+<script>
+(function makeBubbles(){
+  const container = document.querySelector('.bubbles');
+  const colors = ['rgba(255,255,255,0.6)','rgba(240,255,255,0.5)','rgba(220,255,245,0.45)'];
+  for(let i=0;i<14;i++){
+    const b = document.createElement('div');
+    b.className = 'bubble';
+    const s = 20 + Math.random()*140;
+    b.style.width = s + 'px';
+    b.style.height = s + 'px';
+    b.style.left = (Math.random()*100) + 'vw';
+    b.style.bottom = (-Math.random()*60 - 10) + 'vh';
+    b.style.background = colors[Math.floor(Math.random()*colors.length)];
+    b.style.opacity = 0.45 + Math.random()*0.45;
+    b.style.animationDuration = (8 + Math.random()*16) + 's';
+    b.style.animationDelay = (-Math.random()*10) + 's';
+    container.appendChild(b);
+  }
+})();
+</script>
 
-  <!-- TAB BUTTONS -->
+<div class="page-row">
+
+  <!-- tabs -->
   <div id="tabs">
-    <button onclick="showTab('head')">Head</button>
-    <button onclick="showTab('body')">Body</button>
-    <button onclick="showTab('leftArm')">Left Arm</button>
-    <button onclick="showTab('rightArm')">Right Arm</button>
-    <button onclick="showTab('leftLeg')">Left Leg</button>
-    <button onclick="showTab('rightLeg')">Right Leg</button>
+    <button data-part="head">Head</button>
+    <button data-part="body">Body</button>
+    <button data-part="leftArm">Left Arm</button>
+    <button data-part="rightArm">Right Arm</button>
+    <button data-part="leftLeg">Left Leg</button>
+    <button data-part="rightLeg">Right Leg</button>
   </div>
 
-  <!-- CAROUSEL -->
+  <!-- carousel column -->
   <div id="carousel-area">
-    <div class="carousel" id="carousel-head">
+    <div class="carousel" id="carousel-head" data-part="head" style="display:none;">
       <h3>Head</h3>
-      <img id="carousel-head-img">
-      <button onclick="prev('head')">Prev</button>
-      <button onclick="next('head')">Next</button>
+      <img id="carousel-head-img" alt="head preview">
+      <div class="controls"><button data-action="prev" data-part="head">Prev</button><button data-action="next" data-part="head">Next</button></div>
     </div>
 
-    <div class="carousel" id="carousel-body">
+    <div class="carousel" id="carousel-body" data-part="body" style="display:none;">
       <h3>Body</h3>
-      <img id="carousel-body-img">
-      <button onclick="prev('body')">Prev</button>
-      <button onclick="next('body')">Next</button>
+      <img id="carousel-body-img" alt="body preview">
+      <div class="controls"><button data-action="prev" data-part="body">Prev</button><button data-action="next" data-part="body">Next</button></div>
     </div>
 
-    <div class="carousel" id="carousel-leftArm">
+    <div class="carousel" id="carousel-leftArm" data-part="leftArm" style="display:none;">
       <h3>Left Arm</h3>
-      <img id="carousel-leftArm-img">
-      <button onclick="prev('leftArm')">Prev</button>
-      <button onclick="next('leftArm')">Next</button>
+      <img id="carousel-leftArm-img" alt="left arm preview">
+      <div class="controls"><button data-action="prev" data-part="leftArm">Prev</button><button data-action="next" data-part="leftArm">Next</button></div>
     </div>
 
-    <div class="carousel" id="carousel-rightArm">
+    <div class="carousel" id="carousel-rightArm" data-part="rightArm" style="display:none;">
       <h3>Right Arm</h3>
-      <img id="carousel-rightArm-img">
-      <button onclick="prev('rightArm')">Prev</button>
-      <button onclick="next('rightArm')">Next</button>
+      <img id="carousel-rightArm-img" alt="right arm preview">
+      <div class="controls"><button data-action="prev" data-part="rightArm">Prev</button><button data-action="next" data-part="rightArm">Next</button></div>
     </div>
 
-    <div class="carousel" id="carousel-leftLeg">
+    <div class="carousel" id="carousel-leftLeg" data-part="leftLeg" style="display:none;">
       <h3>Left Leg</h3>
-      <img id="carousel-leftLeg-img">
-      <button onclick="prev('leftLeg')">Prev</button>
-      <button onclick="next('leftLeg')">Next</button>
+      <img id="carousel-leftLeg-img" alt="left leg preview">
+      <div class="controls"><button data-action="prev" data-part="leftLeg">Prev</button><button data-action="next" data-part="leftLeg">Next</button></div>
     </div>
 
-    <div class="carousel" id="carousel-rightLeg">
+    <div class="carousel" id="carousel-rightLeg" data-part="rightLeg" style="display:none;">
       <h3>Right Leg</h3>
-      <img id="carousel-rightLeg-img">
-      <button onclick="prev('rightLeg')">Prev</button>
-      <button onclick="next('rightLeg')">Next</button>
+      <img id="carousel-rightLeg-img" alt="right leg preview">
+      <div class="controls"><button data-action="prev" data-part="rightLeg">Prev</button><button data-action="next" data-part="rightLeg">Next</button></div>
     </div>
   </div>
 
-  <!-- PREVIEW AREA -->
-  <div id="preview-wrapper">
-    <div id="preview-area">
-      <img id="head"      class="part">
-      <img id="body"      class="part">
-      <img id="left-arm"  class="part">
-      <img id="right-arm" class="part">
-      <img id="left-leg"  class="part">
-      <img id="right-leg" class="part">
+  <!-- preview column -->
+  <div class="preview-wrap">
+    <div id="preview-area" aria-label="Assembled stuffed animal">
+      <!-- order matters: legs behind, body mid, arms front, head top -->
+      <img id="left-leg" class="part" alt="left leg">
+      <img id="right-leg" class="part" alt="right leg">
+      <img id="body" class="part" alt="body">
+      <img id="left-arm" class="part" alt="left arm">
+      <img id="right-arm" class="part" alt="right arm">
+      <img id="head" class="part" alt="head">
     </div>
 
-    <!-- Buttons under preview -->
-    <div id="action-buttons">
-      <button onclick="randomizeAll()">Randomize All</button>
-      <button onclick="downloadCreature()">Download</button>
+    <div id="action-row">
+      <button class="action-btn" id="randomizeBtn">🎲 Randomize All</button>
+      <button class="action-btn" id="downloadBtn">💾 Download My Creature</button>
     </div>
   </div>
 
 </div>
 
-<script>
-let parts = {};
-let index = { head:0, body:0, leftArm:0, rightArm:0, leftLeg:0, rightLeg:0 };
+<!-- html2canvas for download -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"
+  integrity="sha512-BNa5zsxFrqF0a0zY4xXHzkwmo7aX6ixkmKuuNHYsYvwdivgLPgAvFp8Z64KbjDg7sWXBJgp7wa9u0wE1U3r6Lg=="
+  crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 
+<script>
+/* ---------- mapping & state ---------- */
 const folderMap = {
   head: "img/heads/",
   body: "img/bodies/",
@@ -231,86 +226,203 @@ const folderMap = {
   rightLeg: "img/legs/right/"
 };
 
-/* Load parts.json */
-fetch("parts.json")
-  .then(r => r.json())
+let parts = {}; // loaded from parts.json
+let index = { head:0, body:0, leftArm:0, rightArm:0, leftLeg:0, rightLeg:0 };
+
+/* load parts.json and init */
+fetch('parts.json')
+  .then(r => {
+    if(!r.ok) throw new Error('parts.json not found');
+    return r.json();
+  })
   .then(json => {
     parts = json;
-    initAll();
+    initUI();
+  })
+  .catch(err => {
+    console.error('Failed to load parts.json', err);
+    alert('Error loading parts.json — check file exists in mixer/parts.json');
   });
 
-function initAll() {
-  for (const p in parts) update(p);
-  showTab("head");
-  applyPreviewScaling();
-}
+/* initialize UI wiring and populate carousels */
+function initUI(){
+  // show first carousel by default
+  showTab('head');
 
-/* Uniform scaling system */
-function applyPreviewScaling() {
-  const baseWidth = 520;
-  const area = document.getElementById("preview-area");
-  const scale = area.clientWidth / baseWidth;
+  // populate images + update preview
+  Object.keys(parts).forEach(p => {
+    // ensure arrays exist
+    if(!Array.isArray(parts[p]) || parts[p].length === 0) parts[p] = [];
 
-  document.querySelectorAll(".part").forEach(img => {
-    img.style.transform = `scale(${scale})`;
-  });
-}
+    // set index 0 safe
+    index[p] = 0;
 
-window.addEventListener("resize", applyPreviewScaling);
-
-/* Updates a part image */
-function update(part) {
-  const file = parts[part][index[part]];
-  const full = folderMap[part] + file;
-
-  document.getElementById(`carousel-${part}-img`).src = full;
-
-  const id = part.replace(/([A-Z])/g,"-$1").toLowerCase();
-  document.getElementById(id).src = full;
-
-  applyPreviewScaling();
-}
-
-/* Carousel navigation */
-function next(part) {
-  index[part] = (index[part] + 1) % parts[part].length;
-  update(part);
-}
-function prev(part) {
-  index[part] = (index[part] - 1 + parts[part].length) % parts[part].length;
-  update(part);
-}
-
-/* Tab switching */
-function showTab(part) {
-  document.querySelectorAll(".carousel").forEach(c => c.style.display="none");
-  document.getElementById("carousel-" + part).style.display = "flex";
-}
-
-/* Randomize button */
-function randomizeAll() {
-  for (const p in parts) {
-    index[p] = Math.floor(Math.random() * parts[p].length);
+    // update visuals
     update(p);
-  }
+  });
+
+  // wire tab buttons (using data-part attributes)
+  document.querySelectorAll('#tabs button').forEach(btn=>{
+    btn.addEventListener('click', () => {
+      const part = btn.dataset.part || btn.getAttribute('data-part') || btn.textContent.trim().toLowerCase().replace(/\s+/g,'');
+      // we used explicit buttons with data-part in markup; trust dataset when present
+      // highlight active
+      document.querySelectorAll('#tabs button').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      showTab(btn.dataset.part);
+      playClickSound();
+    });
+  });
+
+  // carousel prev/next delegation
+  document.getElementById('carousel-area').addEventListener('click', (e)=>{
+    const btn = e.target.closest('button[data-action]');
+    if(!btn) return;
+    const part = btn.dataset.part;
+    const action = btn.dataset.action;
+    if(action === 'prev') prev(part);
+    else if(action === 'next') next(part);
+  });
+
+  // link buttons
+  document.getElementById('randomizeBtn').addEventListener('click', () => { randomizeAll(); playClickSound(); });
+  document.getElementById('downloadBtn').addEventListener('click', () => { downloadCreature(); playClickSound(); });
+
+  // initial scale compute
+  applyPreviewScaling();
+  window.addEventListener('resize', applyPreviewScaling);
 }
 
-/* Download (simple version - screenshot) */
-function downloadCreature() {
-  const area = document.getElementById("preview-area");
+/* build full path from parts.json entry */
+function buildPath(part, filename){
+  if(!filename) return '';
+  // allow JSON to list full paths or just filenames; if entry already contains a slash, return it
+  if(filename.includes('/')) return filename;
+  const folder = folderMap[part];
+  return folder + filename;
+}
 
-  html2canvas(area, {
-    backgroundColor: null,
-    scale: 2
-  }).then(canvas => {
-    const link = document.createElement("a");
-    link.download = "my-creature.png";
-    link.href = canvas.toDataURL();
-    link.click();
+/* update both carousel control img and preview image */
+function update(part){
+  const arr = parts[part] || [];
+  // clamp index
+  if(arr.length === 0){
+    // clear images if none
+    const controlEl = document.getElementById(`carousel-${part}-img`);
+    if(controlEl) controlEl.src = '';
+    const previewEl = document.getElementById(part.replace(/([A-Z])/g,"-$1").toLowerCase());
+    if(previewEl) previewEl.src = '';
+    return;
+  }
+  index[part] = ((index[part] % arr.length) + arr.length) % arr.length;
+  const filename = arr[index[part]];
+  const full = buildPath(part, filename);
+
+  const controlEl = document.getElementById(`carousel-${part}-img`);
+  if(controlEl) controlEl.src = full;
+
+  const previewId = part.replace(/([A-Z])/g,"-$1").toLowerCase();
+  const previewEl = document.getElementById(previewId);
+  if(previewEl) previewEl.src = full;
+
+  // ensure scaling recalculated (in case images load change size)
+  // small timeout to allow img natural size to settle
+  setTimeout(applyPreviewScaling, 40);
+}
+
+/* navigation */
+function next(part){
+  index[part] = (index[part] + 1) % (parts[part].length || 1);
+  update(part);
+  playClickSound();
+}
+function prev(part){
+  index[part] = (index[part] - 1 + (parts[part].length || 1)) % (parts[part].length || 1);
+  update(part);
+  playClickSound();
+}
+
+/* show a carousel tab */
+function showTab(part){
+  document.querySelectorAll('.carousel').forEach(c => c.style.display = 'none');
+  const el = document.getElementById('carousel-' + part);
+  if(el) el.style.display = 'flex';
+}
+
+/* randomize all parts */
+function randomizeAll(){
+  Object.keys(parts).forEach(p => {
+    if(parts[p].length > 0){
+      index[p] = Math.floor(Math.random() * parts[p].length);
+      update(p);
+      const el = document.getElementById(p.replace(/([A-Z])/g,"-$1").toLowerCase());
+      if(el){
+        el.classList.remove('do-bounce');
+        void el.offsetWidth;
+        el.classList.add('do-bounce');
+      }
+    }
   });
 }
 
-</script>
+/* ========== UNIFORM SCALING: compute scale = previewWidth / baseWidth (520) = var(--scale) = CSS var = number = transform scale ========= */
+function applyPreviewScaling(){
+  const baseWidth = 520;
+  const previewArea = document.getElementById('preview-area');
+  if(!previewArea) return;
+  // clientWidth accounts for responsive width (max 520)
+  const w = previewArea.clientWidth;
+  const scale = w / baseWidth;
+  // store scale as CSS variable so .part uses it in transform
+  previewArea.style.setProperty('--scale', scale);
+  // Also update root var for safety
+  document.documentElement.style.setProperty('--scale', scale);
+}
 
+/* ========== Download (html2canvas) ========== */
+function downloadCreature(){
+  const bubbles = document.querySelector('.bubbles');
+  const oldVis = bubbles.style.display;
+  bubbles.style.display = 'none';
+  const area = document.getElementById('preview-area');
+
+  // temporarily set background to white so transparent artifacts are avoided (optional)
+  const origBg = area.style.background;
+  area.style.background = '#ffffff00';
+
+  // scale option: capture at device pixels — scale 2 for sharper image
+  html2canvas(area, { backgroundColor: null, scale: 2 }).then(canvas=>{
+    const a = document.createElement('a');
+    a.href = canvas.toDataURL('image/png');
+    a.download = 'my-stuffed-animal.png';
+    a.click();
+    // restore
+    bubbles.style.display = oldVis;
+    area.style.background = origBg;
+  }).catch(err=>{
+    console.error('html2canvas error', err);
+    bubbles.style.display = oldVis;
+    area.style.background = origBg;
+    alert('Download failed — check console.');
+  });
+}
+
+/* ========== Small click sound ========== */
+const AudioCtx = window.AudioContext || window.webkitAudioContext;
+let audioCtx = null;
+function ensureAudio(){ if(!audioCtx) audioCtx = new AudioCtx(); }
+function playClickSound(){
+  ensureAudio();
+  const now = audioCtx.currentTime;
+  const osc = audioCtx.createOscillator();
+  const g = audioCtx.createGain();
+  osc.type = 'sine';
+  osc.frequency.value = 720 - Math.random()*300;
+  g.gain.setValueAtTime(0.06, now);
+  g.gain.exponentialRampToValueAtTime(0.0001, now + 0.12);
+  osc.connect(g); g.connect(audioCtx.destination);
+  osc.start(now); osc.stop(now + 0.12);
+}
+</script>
 </body>
 </html>
