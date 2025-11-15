@@ -1,136 +1,74 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
 <title>Stuffed Animal Mixer</title>
-
 <style>
+    :root{ --accent-1:#1a92b6; --accent-2:#6cd4b4; --panel:#ffffffcc; --dashed:#7fd6ff; }
+
+    html,body{ height:100%; margin:0; }
     body {
         font-family: 'Comic Sans MS', 'Fredoka', sans-serif;
         background: linear-gradient(#e3fff1, #c7e8ff);
-        margin: 0;
-        padding: 25px;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        overflow-x: hidden;
+        display:flex; flex-direction:column; align-items:center;
+        padding:20px; box-sizing:border-box; overflow-x:hidden;
     }
+    h1{ margin:0 0 18px 0; color:var(--accent-1); font-size:40px; text-shadow:2px 2px #fff; }
 
-    h1 {
-        margin-bottom: 20px;
-        font-size: 42px;
-        color: #1a92b6;
-        text-shadow: 2px 2px #ffffff;
-    }
-
-    /* Buttons */
-    button {
-        background: #6cd4b4;
-        border: none;
-        padding: 10px 15px;
-        border-radius: 12px;
-        font-size: 16px;
-        cursor: pointer;
-        font-weight: bold;
-        color: white;
-        box-shadow: 0 3px 0 #4aa88b;
-        transition: transform 0.1s;
-    }
-    button:hover { transform: scale(1.08); }
-    button:active { transform: scale(0.95); }
+    .page-row{ display:flex; gap:28px; width:100%; max-width:1100px; justify-content:center; align-items:flex-start; }
 
     /* Tabs */
-    #tabs button {
-        width: 150px;
-    }
+    #tabs{ display:flex; flex-direction:column; gap:10px; width:150px; position:relative; z-index:2; }
+    #tabs button{ width:140px; background:var(--accent-2); border:none; color:white; padding:10px; border-radius:12px; box-shadow:0 3px 0 #4aa88b; cursor:pointer; font-weight:700; }
 
     /* Carousel */
-    .carousel {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 8px;
-        background: #ffffffaa;
-        padding: 15px;
-        border-radius: 15px;
-        box-shadow: 0 4px 10px #00000020;
-        border: 3px dashed #7fd6ff;
-        margin-bottom: 20px;
+    #carousel-area{ width:260px; z-index:2; }
+    .carousel{
+        display:flex; flex-direction:column; align-items:center; background:var(--panel); padding:14px; border-radius:14px;
+        border:3px dashed var(--dashed); box-shadow:0 6px 14px rgba(0,0,0,0.12);
+        width:260px; height:340px; justify-content:space-between;
+    }
+    .carousel h3{ margin:0; color:var(--accent-1); }
+    .carousel img{ width:220px; height:220px; object-fit:contain; background:white; border-radius:12px; padding:8px; border:3px solid #b8edff; box-shadow:0 4px 8px rgba(0,0,0,0.12); flex-shrink:0; }
+    .carousel .controls{ display:flex; gap:8px; }
+
+    /* Preview area */
+    .preview-wrap{ display:flex; flex-direction:column; align-items:center; gap:10px; z-index:2; }
+    #preview-area{
+        width:360px; height:480px; background:var(--panel); border-radius:20px; border:4px solid #7fe6c9;
+        box-shadow:0 6px 18px rgba(0,0,0,0.14); position:relative; overflow:hidden; display:flex; align-items:center; justify-content:center;
     }
 
-    .carousel img {
-        width: 150px;
-        height: 150px;
-        object-fit: contain;
-        background: white;
-        border-radius: 15px;
-        padding: 10px;
-        border: 3px solid #b8edff;
-        box-shadow: 0 4px 8px #00000020;
-    }
+    /* INDIVIDUAL PART SIZES — Option 1 (bigger body, same head) */
+    .part{ position:absolute; object-fit:contain; pointer-events:none; transition:transform .28s ease; }
 
-    /* Built Creature Area */
-    #preview-area {
-        width: 350px;
-        height: 430px;
-        background: #ffffffaa;
-        border: 4px solid #7fe6c9;
-        border-radius: 25px;
-        position: relative;
-        box-shadow: 0 5px 15px #00000025;
-    }
+    #head{ width:130px; height:auto; top:14px; left:112px; }
+    #body{ width:190px; height:auto; top:120px; left:85px; }              /* bigger body */
+    #left-arm{ width:160px; height:auto; top:148px; left:8px; }           /* arms moved outward */
+    #right-arm{ width:160px; height:auto; top:148px; left:192px; }
+    #left-leg{ width:120px; height:auto; top:320px; left:90px; }         /* legs slightly lower */
+    #right-leg{ width:120px; height:auto; top:320px; left:170px; }
 
-    .part {
-        position: absolute;
-        object-fit: contain;
-        pointer-events: none;
-    }
+    /* action buttons under preview (Option B) */
+    #action-row{ display:flex; gap:12px; justify-content:center; margin-top:10px; }
+    .action-btn{ padding:10px 14px; border-radius:12px; background:var(--accent-2); color:white; font-weight:800; border:none; box-shadow:0 3px 0 #4aa88b; cursor:pointer; }
 
-    /* Updated realistic sizing */
-    #head {
-        width: 130px;
-        height: auto;
-        top: 10px;
-        left: 110px;
-    }
-    #body {
-        width: 160px;
-        top: 125px;
-        left: 95px;
-    }
-    #left-arm {
-        width: 150px;
-        top: 150px;
-        left: 15px;
-    }
-    #right-arm {
-        width: 150px;
-        top: 150px;
-        left: 185px;
-    }
-    #left-leg {
-        width: 110px;
-        top: 295px;
-        left: 85px;
-    }
-    #right-leg {
-        width: 110px;
-        top: 295px;
-        left: 155px;
-    }
+    /* Bounce animation */
+    @keyframes bounce{ 0%{transform:translateY(0) scale(1);}30%{transform:translateY(-12px) scale(1.06);}60%{transform:translateY(0) scale(.995);}100%{transform:translateY(0) scale(1);} }
+    .do-bounce{ animation: bounce .6s both; }
 
-    /* Animated floating bubbles */
-    .bubble {
-        position: absolute;
-        background: rgba(255,255,255,0.5);
-        border-radius: 50%;
-        animation: floatUp 12s linear infinite;
-    }
+    /* Bubbles */
+    .bubbles{ position:fixed; left:0; top:0; width:100%; height:100%; pointer-events:none; overflow:hidden; z-index:0; }
+    .bubble{ position:absolute; border-radius:50%; background: rgba(255,255,255,0.6); mix-blend-mode:overlay; filter: blur(6px); animation: floatUp linear infinite; opacity:.9; }
+    @keyframes floatUp{ from{ transform: translateY(120vh) scale(1);} to{ transform: translateY(-40vh) scale(.9);} }
 
-    @keyframes floatUp {
-        0% { transform: translateY(100vh) scale(0.5); opacity: 1; }
-        100% { transform: translateY(-20vh) scale(1); opacity: 0; }
+    .page-row, h1{ position:relative; z-index:1; }
+
+    @media (max-width:900px){
+        .page-row{ flex-direction:column; align-items:center; }
+        #tabs{ flex-direction:row; width:auto; flex-wrap:wrap; }
+        #tabs button{ width:auto; }
     }
 </style>
 </head>
@@ -138,95 +76,107 @@
 
 <h1>Stuffed Animal Mixer</h1>
 
-<!-- Bubble background -->
+<!-- animated bubbles container -->
+<div class="bubbles" aria-hidden="true"></div>
+
 <script>
-for (let i = 0; i < 20; i++) {
-    const b = document.createElement("div");
-    b.className = "bubble";
-    const size = Math.random() * 80 + 20;
-    b.style.width = size + "px";
-    b.style.height = size + "px";
-    b.style.left = Math.random() * 100 + "vw";
-    b.style.animationDelay = Math.random() * 10 + "s";
-    document.body.appendChild(b);
-}
+(function makeBubbles(){
+    const container = document.querySelector('.bubbles');
+    const colors = ['rgba(255,255,255,0.6)','rgba(240,255,255,0.5)','rgba(220,255,245,0.45)'];
+    const count = 14;
+    for(let i=0;i<count;i++){
+        const b = document.createElement('div');
+        b.className = 'bubble';
+        const size = 30 + Math.random()*120;
+        b.style.width = size + 'px';
+        b.style.height = size + 'px';
+        b.style.left = (Math.random()*100) + 'vw';
+        b.style.bottom = (-Math.random()*60 - 10) + 'vh';
+        b.style.background = colors[Math.floor(Math.random()*colors.length)];
+        b.style.opacity = 0.5 + Math.random()*0.4;
+        b.style.animationDuration = (12 + Math.random()*18) + 's';
+        b.style.animationDelay = (-Math.random()*20) + 's';
+        container.appendChild(b);
+    }
+})();
 </script>
 
-<div style="display:flex; gap:25px; width:100%; justify-content:center;">
+<div class="page-row">
 
-    <!-- Tabs -->
-    <div id="tabs" style="display:flex; flex-direction:column; gap:12px;">
-        <button onclick="showTab('head')">Head</button>
-        <button onclick="showTab('body')">Body</button>
-        <button onclick="showTab('leftArm')">Left Arm</button>
-        <button onclick="showTab('rightArm')">Right Arm</button>
-        <button onclick="showTab('leftLeg')">Left Leg</button>
-        <button onclick="showTab('rightLeg')">Right Leg</button>
-        <button onclick="randomizeAll()" style="margin-top:20px; background:#4fb3ff; box-shadow:0 3px 0 #3583c2;">Randomize All</button>
-        <button onclick="downloadCreature()" style="background:#5fdd78; box-shadow:0 3px 0 #45a85a;">Download My Creature</button>
+    <!-- tabs -->
+    <div id="tabs">
+        <button onclick="playClick(); showTab('head')">Head</button>
+        <button onclick="playClick(); showTab('body')">Body</button>
+        <button onclick="playClick(); showTab('leftArm')">Left Arm</button>
+        <button onclick="playClick(); showTab('rightArm')">Right Arm</button>
+        <button onclick="playClick(); showTab('leftLeg')">Left Leg</button>
+        <button onclick="playClick(); showTab('rightLeg')">Right Leg</button>
     </div>
 
-    <!-- Carousel -->
-    <div id="carousel-area" style="width:220px;">
-
-        <div class="carousel" id="carousel-head">
+    <!-- carousel -->
+    <div id="carousel-area">
+        <div class="carousel" id="carousel-head" data-part="head">
             <h3>Head</h3>
-            <img id="head-img" src="" alt="Head">
-            <button onclick="prev('head')">Prev</button>
-            <button onclick="next('head')">Next</button>
+            <img id="head-img" alt="head preview">
+            <div class="controls"><button onclick="playClick(); prev('head')">Prev</button><button onclick="playClick(); next('head')">Next</button></div>
         </div>
 
-        <div class="carousel" id="carousel-body" style="display:none;">
+        <div class="carousel" id="carousel-body" style="display:none;" data-part="body">
             <h3>Body</h3>
-            <img id="body-img" src="" alt="Body">
-            <button onclick="prev('body')">Prev</button>
-            <button onclick="next('body')">Next</button>
+            <img id="body-img" alt="body preview">
+            <div class="controls"><button onclick="playClick(); prev('body')">Prev</button><button onclick="playClick(); next('body')">Next</button></div>
         </div>
 
-        <div class="carousel" id="carousel-leftArm" style="display:none;">
+        <div class="carousel" id="carousel-leftArm" style="display:none;" data-part="leftArm">
             <h3>Left Arm</h3>
-            <img id="left-arm-img" src="" alt="Left Arm">
-            <button onclick="prev('leftArm')">Prev</button>
-            <button onclick="next('leftArm')">Next</button>
+            <img id="leftArm-img" alt="left arm preview">
+            <div class="controls"><button onclick="playClick(); prev('leftArm')">Prev</button><button onclick="playClick(); next('leftArm')">Next</button></div>
         </div>
 
-        <div class="carousel" id="carousel-rightArm" style="display:none;">
+        <div class="carousel" id="carousel-rightArm" style="display:none;" data-part="rightArm">
             <h3>Right Arm</h3>
-            <img id="right-arm-img" src="" alt="Right Arm">
-            <button onclick="prev('rightArm')">Prev</button>
-            <button onclick="next('rightArm')">Next</button>
+            <img id="rightArm-img" alt="right arm preview">
+            <div class="controls"><button onclick="playClick(); prev('rightArm')">Prev</button><button onclick="playClick(); next('rightArm')">Next</button></div>
         </div>
 
-        <div class="carousel" id="carousel-leftLeg" style="display:none;">
+        <div class="carousel" id="carousel-leftLeg" style="display:none;" data-part="leftLeg">
             <h3>Left Leg</h3>
-            <img id="left-leg-img" src="" alt="Left Leg">
-            <button onclick="prev('leftLeg')">Prev</button>
-            <button onclick="next('leftLeg')">Next</button>
+            <img id="leftLeg-img" alt="left leg preview">
+            <div class="controls"><button onclick="playClick(); prev('leftLeg')">Prev</button><button onclick="playClick(); next('leftLeg')">Next</button></div>
         </div>
 
-        <div class="carousel" id="carousel-rightLeg" style="display:none;">
+        <div class="carousel" id="carousel-rightLeg" style="display:none;" data-part="rightLeg">
             <h3>Right Leg</h3>
-            <img id="right-leg-img" src="" alt="Right Leg">
-            <button onclick="prev('rightLeg')">Prev</button>
-            <button onclick="next('rightLeg')">Next</button>
+            <img id="rightLeg-img" alt="right leg preview">
+            <div class="controls"><button onclick="playClick(); prev('rightLeg')">Prev</button><button onclick="playClick(); next('rightLeg')">Next</button></div>
         </div>
-
     </div>
 
-    <!-- Creature Preview -->
-    <div id="preview-area">
-        <img id="head" class="part">
-        <img id="body" class="part">
-        <img id="left-arm" class="part">
-        <img id="right-arm" class="part">
-        <img id="left-leg" class="part">
-        <img id="right-leg" class="part">
+    <!-- preview + action buttons below preview (Option B) -->
+    <div class="preview-wrap">
+        <div id="preview-area" aria-label="Assembled stuffed animal">
+            <img id="head" class="part" alt="head">
+            <img id="body" class="part" alt="body">
+            <img id="left-arm" class="part" alt="left arm">
+            <img id="right-arm" class="part" alt="right arm">
+            <img id="left-leg" class="part" alt="left leg">
+            <img id="right-leg" class="part" alt="right leg">
+        </div>
+
+        <div id="action-row">
+            <button class="action-btn" onclick="playClick(); randomizeAll()">🎲 Randomize All</button>
+            <button class="action-btn" onclick="playClick(); downloadCreature()">💾 Download My Creature</button>
+        </div>
     </div>
 
 </div>
 
+<!-- include html2canvas for download functionality -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
 <script>
-/* Only bear exists for now — add more later */
+/* === file list (matches your current repo) ===
+   Add new animal filenames later using the same pattern */
 const files = {
     head: ["img/heads/bear.png"],
     body: ["img/bodies/bear.png"],
@@ -236,70 +186,118 @@ const files = {
     rightLeg: ["img/legs/right-bear.png"]
 };
 
-const index = { head: 0, body: 0, leftArm: 0, rightArm: 0, leftLeg: 0, rightLeg: 0 };
+const index = { head:0, body:0, leftArm:0, rightArm:0, leftLeg:0, rightLeg:0 };
 
-/* Sound effects */
-const sounds = [
-    "https://cdn.pixabay.com/download/audio/2022/03/15/audio_35c50a6487.mp3",
-    "https://cdn.pixabay.com/download/audio/2022/03/25/audio_fe7bbdba59.mp3",
-    "https://cdn.pixabay.com/download/audio/2022/03/10/audio_f311b5b7a2.mp3"
-];
+/* Update function:
+   control image IDs are camelCase: e.g. leftArm-img
+   preview image IDs are dashed: e.g. left-arm */
+function update(part){
+    const controlId = part + "-img";                      // head-img, leftArm-img, etc.
+    const previewId = part.replace(/([A-Z])/g,"-$1").toLowerCase(); // head, left-arm, etc.
 
-function playSound() {
-    new Audio(sounds[Math.floor(Math.random()*sounds.length)]).play();
+    const controlEl = document.getElementById(controlId);
+    const previewEl = document.getElementById(previewId);
+
+    if(controlEl) controlEl.src = files[part][index[part]];
+    if(previewEl) previewEl.src = files[part][index[part]];
 }
 
-function update(part) {
-    const img = document.getElementById(part + "-img");
-    const view = document.getElementById(part.replace(/([A-Z])/g, '-$1').toLowerCase());
-    img.src = files[part][index[part]];
-    view.src = files[part][index[part]];
-}
-
-function next(part) {
+/* next / prev */
+function next(part){
     index[part] = (index[part] + 1) % files[part].length;
     update(part);
-    playSound();
+    playRandomSound();
 }
-function prev(part) {
+function prev(part){
     index[part] = (index[part] - 1 + files[part].length) % files[part].length;
     update(part);
-    playSound();
+    playRandomSound();
 }
 
-function showTab(part) {
+/* show tab */
+function showTab(part){
     document.querySelectorAll(".carousel").forEach(c => c.style.display = "none");
-    document.getElementById("carousel-" + part).style.display = "flex";
+    const el = document.getElementById("carousel-" + part);
+    if(el) el.style.display = "flex";
 }
 
-/* Randomize All */
-function randomizeAll() {
-    Object.keys(files).forEach(p => {
-        index[p] = Math.floor(Math.random() * files[p].length);
-        update(p);
-    });
-    playSound();
-}
-
-/* Download creature */
-function downloadCreature() {
-    html2canvas(document.querySelector("#preview-area")).then(canvas => {
-        const link = document.createElement("a");
-        link.download = "my-creature.png";
-        link.href = canvas.toDataURL();
-        link.click();
-    });
-}
-
-/* Load helper library */
-let s = document.createElement("script");
-s.src = "https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js";
-document.body.appendChild(s);
-
-/* Initialize */
+/* init */
 Object.keys(files).forEach(update);
 showTab("head");
-</script>
 
+/* Randomize all (with small bounce) */
+function randomizeAll(){
+    Object.keys(files).forEach(p=>{
+        index[p] = Math.floor(Math.random() * files[p].length);
+        update(p);
+        const el = document.getElementById(p.replace(/([A-Z])/g,"-$1").toLowerCase());
+        if(el){
+            el.classList.remove("do-bounce");
+            void el.offsetWidth;
+            el.classList.add("do-bounce");
+        }
+    });
+    playRandomSound(true);
+}
+
+/* Download using html2canvas */
+function downloadCreature(){
+    // temporarily remove bubbles from view for screenshot
+    const bubbles = document.querySelector('.bubbles');
+    if(bubbles) bubbles.style.display = 'none';
+    html2canvas(document.getElementById('preview-area'), { backgroundColor: null }).then(canvas=>{
+        const a = document.createElement('a');
+        a.href = canvas.toDataURL('image/png');
+        a.download = 'my-stuffed-animal.png';
+        a.click();
+        if(bubbles) bubbles.style.display = '';
+    });
+}
+
+/* Simple random cute sounds (WebAudio) */
+const AudioCtx = window.AudioContext || window.webkitAudioContext;
+let audioCtx = null;
+function ensureAudio(){ if(!audioCtx) audioCtx = new AudioCtx(); }
+
+function playTone(freq, dur=0.12, type='sine', vol=0.07){
+    ensureAudio();
+    const now = audioCtx.currentTime;
+    const o = audioCtx.createOscillator();
+    const g = audioCtx.createGain();
+    o.type = type; o.frequency.value = freq;
+    g.gain.setValueAtTime(vol, now);
+    g.gain.exponentialRampToValueAtTime(0.0001, now + dur);
+    o.connect(g); g.connect(audioCtx.destination);
+    o.start(now); o.stop(now + dur + 0.02);
+}
+function playNoise(){
+    ensureAudio();
+    const bufferSize = 0.02 * audioCtx.sampleRate;
+    const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+    const data = buffer.getChannelData(0);
+    for(let i=0;i<data.length;i++) data[i] = (Math.random()*2-1) * Math.exp(-i/buffer.length*6);
+    const src = audioCtx.createBufferSource();
+    src.buffer = buffer;
+    const g = audioCtx.createGain();
+    g.gain.value = 0.06;
+    src.connect(g); g.connect(audioCtx.destination);
+    src.start();
+}
+function playRandomSound(isBig=false){
+    ensureAudio();
+    const c = Math.floor(Math.random()*5);
+    if(c===0){ playTone(720,0.10,'triangle',0.06); setTimeout(()=>playTone(860,0.09,'sine',0.04),60); }
+    else if(c===1){ playTone(520,0.12,'sine',0.06); }
+    else if(c===2){ playTone(360,0.16,'sawtooth',0.08); }
+    else if(c===3){ playTone(900,0.08,'square',0.06); setTimeout(()=>playTone(1080,0.08,'square',0.04),60); }
+    else { playNoise(); }
+}
+function playClick(){ playRandomSound(); }
+
+/* expose for inline onclicks */
+window.next = next; window.prev = prev; window.showTab = function(p){ showTab(p); playClick(); };
+window.randomizeAll = randomizeAll; window.downloadCreature = downloadCreature; window.playClick = playClick;
+
+</script>
 </body>
 </html>
