@@ -1,554 +1,328 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Stuffed Animal Mixer</title>
 
 <style>
-    :root{
-        --accent-1:#1a92b6;
-        --accent-2:#6cd4b4;
-        --panel:#ffffffcc;
-        --dashed:#7fd6ff;
-    }
-
-    html,body{
-        height:100%;
-        margin:0;
-    }
-
     body {
-        font-family: 'Comic Sans MS', 'Fredoka', sans-serif;
-        background: linear-gradient(#e3fff1, #c7e8ff);
-        display:flex;
-        flex-direction:column;
-        align-items:center;
-        padding:24px;
-        box-sizing:border-box;
-        overflow-x:hidden;
+        font-family: "Comic Sans MS", "Fredoka", sans-serif;
+        margin: 0;
+        padding: 0;
+        background: linear-gradient(#dffcff, #c6f7e7);
+        overflow-x: hidden;
     }
 
-    h1{
-        margin:0 0 18px 0;
-        color:var(--accent-1);
-        font-size:40px;
-        text-shadow:2px 2px #fff;
+    h1 {
+        text-align: center;
+        padding: 20px 0;
+        font-size: 42px;
+        color: #1a8fb8;
+        text-shadow: 2px 2px #ffffff;
+        margin: 0;
+    }
+
+    /* Animated bubbles */
+    .bubble {
+        position: fixed;
+        bottom: -100px;
+        background: rgba(255, 255, 255, 0.6);
+        border-radius: 50%;
+        animation: rise 12s infinite ease-in;
+        pointer-events: none;
+    }
+    @keyframes rise {
+        0% { transform: translateY(0) scale(1); opacity: 1; }
+        100% { transform: translateY(-140vh) scale(1.4); opacity: 0; }
     }
 
     /* Layout */
-    .page-row{
-        display:flex;
-        gap:28px;
-        width:100%;
-        max-width:1100px;
-        justify-content:center;
-        align-items:flex-start;
+    #layout {
+        display: flex;
+        justify-content: center;
+        gap: 30px;
+        padding: 20px;
     }
 
-    /* Left tab column */
-    #tabs{
-        display:flex;
-        flex-direction:column;
-        gap:10px;
-        width:150px;
+    /* Tabs */
+    #tabs button {
+        display: block;
+        width: 150px;
+        padding: 12px;
+        background: #69d4b3;
+        border: none;
+        border-radius: 12px;
+        color: white;
+        font-weight: bold;
+        font-size: 17px;
+        margin-bottom: 10px;
+        cursor: pointer;
+        box-shadow: 0 4px 0 #4aa88b;
+        transition: transform 0.1s;
     }
-    #tabs button{
-        width:140px;
-        background:var(--accent-2);
-        border:none;
-        color:white;
-        padding:10px;
-        border-radius:12px;
-        box-shadow:0 3px 0 #4aa88b;
-        cursor:pointer;
-        font-weight:700;
-    }
-
-    /* Carousel (fixed size so no jump) */
-    #carousel-area{ width:260px; }
-    .carousel{
-        display:flex;
-        flex-direction:column;
-        align-items:center;
-        background:var(--panel);
-        padding:14px;
-        border-radius:14px;
-        border:3px dashed var(--dashed);
-        box-shadow:0 6px 14px rgba(0,0,0,0.12);
-        width:260px;
-        height:340px;
-        justify-content:space-between;
-    }
-    .carousel h3{ margin:0; color:var(--accent-1); }
-    .carousel img{
-        width:220px;
-        height:220px;
-        object-fit:contain;
-        background:white;
-        border-radius:12px;
-        padding:8px;
-        border:3px solid #b8edff;
-        box-shadow:0 4px 8px rgba(0,0,0,0.12);
-        flex-shrink:0;
-    }
-    .carousel .controls{ display:flex; gap:8px; }
-
-    /* Center preview area */
-    .preview-wrap{
-        display:flex;
-        flex-direction:column;
-        align-items:center;
-        gap:10px;
+    #tabs button:hover {
+        transform: scale(1.07);
     }
 
-    #preview-area{
-        width:320px;
-        height:420px;
-        background:var(--panel);
-        border-radius:20px;
-        border:4px solid #7fe6c9;
-        box-shadow:0 6px 18px rgba(0,0,0,0.14);
-        position:relative;
-        overflow:hidden;
-        display:flex;
-        align-items:center;
-        justify-content:center;
+    /* Carousel */
+    .carousel {
+        width: 240px;
+        min-height: 320px;
+        background: #ffffffcc;
+        border-radius: 18px;
+        padding: 15px;
+        text-align: center;
+        border: 4px dashed #86d8ff;
+        box-shadow: 0 6px 15px #00000025;
     }
 
-    /* Assembled parts: consistent size */
-    .part{
-        position:absolute;
-        width:140px;
-        height:140px;
-        object-fit:contain;
-        transition:transform .28s ease;
-        pointer-events:none;
+    .carousel img {
+        width: 160px;
+        height: 160px;
+        background: white;
+        border-radius: 14px;
+        object-fit: contain;
+        border: 4px solid #c5f2ff;
+        box-shadow: 0 4px 12px #00000025;
+        margin-bottom: 10px;
     }
 
-    #head{ top:10px; left:90px; }
-    #body{ top:140px; left:90px; }
-    #left-arm{ top:160px; left:20px; }
-    #right-arm{ top:160px; left:160px; }
-    #left-leg{ top:280px; left:60px; }
-    #right-leg{ top:280px; left:120px; }
-
-    /* Buttons row under preview */
-    .actions{ display:flex; gap:8px; margin-top:8px; }
-    .big-btn{
-        padding:10px 14px;
-        border-radius:12px;
-        background:var(--accent-2);
-        color:#fff;
-        font-weight:800;
-        border:none;
-        box-shadow:0 3px 0 #4aa88b;
-        cursor:pointer;
+    .carousel button {
+        margin: 5px;
+        background: #6cd4b4;
+        padding: 10px 16px;
+        border-radius: 12px;
+        border: none;
+        font-size: 15px;
+        color: white;
+        cursor: pointer;
+        box-shadow: 0 3px 0 #4aa88b;
     }
 
-    /* Bounce animation used when randomizing */
-    @keyframes bounce{
-        0%{ transform: translateY(0) scale(1); }
-        30%{ transform: translateY(-12px) scale(1.06); }
-        60%{ transform: translateY(0) scale(0.995); }
-        100%{ transform: translateY(0) scale(1); }
-    }
-    .do-bounce{ animation: bounce .6s both; }
-
-    /* Subtle bubble background (absolute) */
-    .bubbles{
-        position:fixed;
-        left:0; top:0; width:100%; height:100%;
-        pointer-events:none;
-        overflow:hidden;
-        z-index:0;
-    }
-    .bubble{
-        position:absolute;
-        border-radius:50%;
-        background: rgba(255,255,255,0.6);
-        mix-blend-mode:overlay;
-        filter: blur(6px);
-        animation: floatUp linear infinite;
-        opacity:.9;
-    }
-    @keyframes floatUp{
-        from{ transform: translateY(120vh) scale(1); }
-        to{ transform: translateY(-40vh) scale(0.9); }
+    /* Preview */
+    #preview-area {
+        width: 340px;
+        height: 480px;
+        background: #ffffffcc;
+        border: 5px solid #67e0c2;
+        border-radius: 20px;
+        position: relative;
+        box-shadow: 0 8px 20px #00000030;
+        overflow: hidden;
     }
 
-    /* Make main content appear above bubbles */
-    .page-row, h1 { position:relative; z-index:1; }
+    .part {
+        position: absolute;
+        width: 130px;
+        left: 105px;
+    }
+    #preview-head { top: 5px; }
+    #preview-body { top: 145px; }
+    #preview-left-arm { top: 165px; left: 45px; }
+    #preview-right-arm { top: 165px; left: 170px; }
+    #preview-left-leg { top: 300px; left: 75px; }
+    #preview-right-leg { top: 300px; left: 145px; }
 
-    /* Small responsive tweaks */
-    @media (max-width:900px){
-        .page-row{ flex-direction:column; align-items:center; }
-        #tabs{ flex-direction:row; width:auto; }
-        #tabs button{ width:auto; }
+    /* Buttons below preview */
+    #action-buttons {
+        display: flex;
+        justify-content: center;
+        gap: 20px;
+        padding-top: 15px;
     }
 
+    #action-buttons button {
+        background: #5cc2ff;
+        padding: 12px 18px;
+        border: none;
+        border-radius: 14px;
+        color: white;
+        font-weight: bold;
+        font-size: 17px;
+        box-shadow: 0 4px 0 #3398d6;
+        cursor: pointer;
+    }
 </style>
 </head>
 <body>
 
 <h1>Stuffed Animal Mixer</h1>
 
-<!-- animated bubbles -->
-<div class="bubbles" aria-hidden="true"></div>
+<!-- Animated bubbles -->
+<script>
+for (let i = 0; i < 20; i++) {
+    let b = document.createElement("div");
+    b.classList.add("bubble");
+    let size = Math.random() * 70 + 20;
+    b.style.width = size + "px";
+    b.style.height = size + "px";
+    b.style.left = Math.random() * 100 + "vw";
+    b.style.animationDuration = (10 + Math.random() * 10) + "s";
+    document.body.appendChild(b);
+}
+</script>
 
-<div class="page-row">
+<div id="layout">
 
-    <!-- left tabs -->
+    <!-- Tabs -->
     <div id="tabs">
-        <button onclick="playClick(); showTab('head')">Head</button>
-        <button onclick="playClick(); showTab('body')">Body</button>
-        <button onclick="playClick(); showTab('leftArm')">Left Arm</button>
-        <button onclick="playClick(); showTab('rightArm')">Right Arm</button>
-        <button onclick="playClick(); showTab('leftLeg')">Left Leg</button>
-        <button onclick="playClick(); showTab('rightLeg')">Right Leg</button>
+        <button onclick="showTab('head')">Head</button>
+        <button onclick="showTab('body')">Body</button>
+        <button onclick="showTab('leftArm')">Left Arm</button>
+        <button onclick="showTab('rightArm')">Right Arm</button>
+        <button onclick="showTab('leftLeg')">Left Leg</button>
+        <button onclick="showTab('rightLeg')">Right Leg</button>
     </div>
 
-    <!-- carousel area -->
+    <!-- Carousel area -->
     <div id="carousel-area">
-        <div class="carousel" id="carousel-head" data-part="head">
+        <div class="carousel" id="carousel-head">
             <h3>Head</h3>
-            <img id="head-img" src="" alt="Head preview" />
-            <div class="controls">
-                <button onclick="playClick(); prev('head')">Prev</button>
-                <button onclick="playClick(); next('head')">Next</button>
-            </div>
+            <img id="head-img">
+            <button onclick="prev('head')">Prev</button>
+            <button onclick="next('head')">Next</button>
         </div>
 
-        <div class="carousel" id="carousel-body" style="display:none;" data-part="body">
+        <div class="carousel" id="carousel-body" style="display:none;">
             <h3>Body</h3>
-            <img id="body-img" src="" alt="Body preview" />
-            <div class="controls">
-                <button onclick="playClick(); prev('body')">Prev</button>
-                <button onclick="playClick(); next('body')">Next</button>
-            </div>
+            <img id="body-img">
+            <button onclick="prev('body')">Prev</button>
+            <button onclick="next('body')">Next</button>
         </div>
 
-        <div class="carousel" id="carousel-leftArm" style="display:none;" data-part="leftArm">
+        <div class="carousel" id="carousel-leftArm" style="display:none;">
             <h3>Left Arm</h3>
-            <img id="left-arm-img" src="" alt="Left arm preview" />
-            <div class="controls">
-                <button onclick="playClick(); prev('leftArm')">Prev</button>
-                <button onclick="playClick(); next('leftArm')">Next</button>
-            </div>
+            <img id="leftArm-img">
+            <button onclick="prev('leftArm')">Prev</button>
+            <button onclick="next('leftArm')">Next</button>
         </div>
 
-        <div class="carousel" id="carousel-rightArm" style="display:none;" data-part="rightArm">
+        <div class="carousel" id="carousel-rightArm" style="display:none;">
             <h3>Right Arm</h3>
-            <img id="right-arm-img" src="" alt="Right arm preview" />
-            <div class="controls">
-                <button onclick="playClick(); prev('rightArm')">Prev</button>
-                <button onclick="playClick(); next('rightArm')">Next</button>
-            </div>
+            <img id="rightArm-img">
+            <button onclick="prev('rightArm')">Prev</button>
+            <button onclick="next('rightArm')">Next</button>
         </div>
 
-        <div class="carousel" id="carousel-leftLeg" style="display:none;" data-part="leftLeg">
+        <div class="carousel" id="carousel-leftLeg" style="display:none;">
             <h3>Left Leg</h3>
-            <img id="left-leg-img" src="" alt="Left leg preview" />
-            <div class="controls">
-                <button onclick="playClick(); prev('leftLeg')">Prev</button>
-                <button onclick="playClick(); next('leftLeg')">Next</button>
-            </div>
+            <img id="leftLeg-img">
+            <button onclick="prev('leftLeg')">Prev</button>
+            <button onclick="next('leftLeg')">Next</button>
         </div>
 
-        <div class="carousel" id="carousel-rightLeg" style="display:none;" data-part="rightLeg">
+        <div class="carousel" id="carousel-rightLeg" style="display:none;">
             <h3>Right Leg</h3>
-            <img id="right-leg-img" src="" alt="Right leg preview" />
-            <div class="controls">
-                <button onclick="playClick(); prev('rightLeg')">Prev</button>
-                <button onclick="playClick(); next('rightLeg')">Next</button>
-            </div>
+            <img id="rightLeg-img">
+            <button onclick="prev('rightLeg')">Prev</button>
+            <button onclick="next('rightLeg')">Next</button>
         </div>
     </div>
 
-    <!-- preview and actions -->
-    <div class="preview-wrap">
-        <div id="preview-area" aria-label="Assembled stuffed animal">
-            <!-- parts (empty srcs initially) -->
-            <img id="head" class="part" alt="head"/>
-            <img id="body" class="part" alt="body"/>
-            <img id="left-arm" class="part" alt="left arm"/>
-            <img id="right-arm" class="part" alt="right arm"/>
-            <img id="left-leg" class="part" alt="left leg"/>
-            <img id="right-leg" class="part" alt="right leg"/>
+    <!-- Preview -->
+    <div>
+        <div id="preview-area">
+            <img id="preview-head" class="part">
+            <img id="preview-body" class="part">
+            <img id="preview-left-arm" class="part">
+            <img id="preview-right-arm" class="part">
+            <img id="preview-left-leg" class="part">
+            <img id="preview-right-leg" class="part">
         </div>
 
-        <div class="actions">
-            <button class="big-btn" onclick="playClick(); randomizeAll();">🎲 Randomize All</button>
-            <button class="big-btn" onclick="playClick(); downloadCreature();">💾 Download My Creature</button>
+        <div id="action-buttons">
+            <button onclick="randomizeAll()">Randomize All</button>
+            <button onclick="downloadCreature()">Download My Creature</button>
         </div>
     </div>
+
 </div>
 
+<script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+
 <script>
-/* -------- image sets (10 animals, 6 parts) -------- */
-const parts = {
-    head: [
-        "img/heads/bear.png","img/heads/tiger.png","img/heads/elephant.png","img/heads/giraffe.png",
-        "img/heads/dog.png","img/heads/unicorn.png","img/heads/dragon.png","img/heads/lion.png",
-        "img/heads/monkey.png","img/heads/dinosaur.png"
-    ],
-    body: [
-        "img/bodies/bear.png","img/bodies/tiger.png","img/bodies/elephant.png","img/bodies/giraffe.png",
-        "img/bodies/dog.png","img/bodies/unicorn.png","img/bodies/dragon.png","img/bodies/lion.png",
-        "img/bodies/monkey.png","img/bodies/dinosaur.png"
-    ],
-    leftArm: [
-        "img/arms/left-bear.png","img/arms/left-tiger.png","img/arms/left-elephant.png","img/arms/left-giraffe.png",
-        "img/arms/left-dog.png","img/arms/left-unicorn.png","img/arms/left-dragon.png","img/arms/left-lion.png",
-        "img/arms/left-monkey.png","img/arms/left-dinosaur.png"
-    ],
-    rightArm: [
-        "img/arms/right-bear.png","img/arms/right-tiger.png","img/arms/right-elephant.png","img/arms/right-giraffe.png",
-        "img/arms/right-dog.png","img/arms/right-unicorn.png","img/arms/right-dragon.png","img/arms/right-lion.png",
-        "img/arms/right-monkey.png","img/arms/right-dinosaur.png"
-    ],
-    leftLeg: [
-        "img/legs/left-bear.png","img/legs/left-tiger.png","img/legs/left-elephant.png","img/legs/left-giraffe.png",
-        "img/legs/left-dog.png","img/legs/left-unicorn.png","img/legs/left-dragon.png","img/legs/left-lion.png",
-        "img/legs/left-monkey.png","img/legs/left-dinosaur.png"
-    ],
-    rightLeg: [
-        "img/legs/right-bear.png","img/legs/right-tiger.png","img/legs/right-elephant.png","img/legs/right-giraffe.png",
-        "img/legs/right-dog.png","img/legs/right-unicorn.png","img/legs/right-dragon.png","img/legs/right-lion.png",
-        "img/legs/right-monkey.png","img/legs/right-dinosaur.png"
-    ]
+/* Only 1 animal so far */
+const files = {
+    head: ["img/heads/bear.png"],
+    body: ["img/bodies/bear.png"],
+    leftArm: ["img/arms/left-bear.png"],
+    rightArm: ["img/arms/right-bear.png"],
+    leftLeg: ["img/legs/left-bear.png"],
+    rightLeg: ["img/legs/right-bear.png"]
 };
 
-const index = { head:0, body:0, leftArm:0, rightArm:0, leftLeg:0, rightLeg:0 };
+const index = {
+    head: 0,
+    body: 0,
+    leftArm: 0,
+    rightArm: 0,
+    leftLeg: 0,
+    rightLeg: 0
+};
 
-/* -------- update UI -------- */
-function update(part){
-    const controlImg = document.getElementById(part + "-img");
-    const previewImg = document.getElementById(part.replace(/([A-Z])/g,'-$1').toLowerCase());
-    const list = parts[part];
-    controlImg.src = list[index[part]];
-    previewImg.src = list[index[part]];
+/* Cute sound effects */
+const sounds = [
+    "https://actions.google.com/sounds/v1/cartoon/wood_plank_flicks.ogg",
+    "https://actions.google.com/sounds/v1/cartoon/pop.ogg",
+    "https://actions.google.com/sounds/v1/cartoon/concussive_hit_guitar_boing.ogg"
+];
+
+function playSound() {
+    const audio = new Audio(sounds[Math.floor(Math.random() * sounds.length)]);
+    audio.volume = 0.4;
+    audio.play();
 }
 
-/* next / prev */
-function next(part){ index[part] = (index[part]+1)%parts[part].length; update(part); playRandomSound(); }
-function prev(part){ index[part] = (index[part]-1+parts[part].length)%parts[part].length; update(part); playRandomSound(); }
+function update(part) {
+    const img = document.getElementById(part + "-img");
+    const view = document.getElementById("preview-" +
+        part.replace(/([A-Z])/g, "-$1").toLowerCase());
+    const list = files[part];
 
-/* show single carousel */
-function showTab(part){
-    document.querySelectorAll('.carousel').forEach(c=>c.style.display='none');
-    const el = document.getElementById('carousel-' + part);
-    if(el) el.style.display = 'flex';
+    img.src = list[index[part]];
+    view.src = list[index[part]];
 }
 
-/* initialize */
-Object.keys(parts).forEach(update);
-showTab('head');
+function next(part) {
+    playSound();
+    index[part] = (index[part] + 1) % files[part].length;
+    update(part);
+}
 
-/* -------- Randomize All (with bounce) -------- */
-function randomizeAll(){
-    Object.keys(parts).forEach(p=>{
-        index[p] = Math.floor(Math.random()*parts[p].length);
-        update(p);
-        // add bounce to preview element
-        const el = document.getElementById(p.replace(/([A-Z])/g,'-$1').toLowerCase());
-        el.classList.remove('do-bounce');
-        // force reflow to restart animation
-        void el.offsetWidth;
-        el.classList.add('do-bounce');
+function prev(part) {
+    playSound();
+    index[part] = (index[part] - 1 + files[part].length) % files[part].length;
+    update(part);
+}
+
+function showTab(part) {
+    document.querySelectorAll(".carousel").forEach(c => c.style.display = "none");
+    document.getElementById("carousel-" + part).style.display = "block";
+}
+
+function randomizeAll() {
+    playSound();
+    Object.keys(files).forEach(part => {
+        index[part] = Math.floor(Math.random() * files[part].length);
+        update(part);
     });
-    playRandomSound(true);
 }
 
-/* -------- Download merging into a PNG --------
-   Creates an offscreen canvas same size as preview-area (320x420),
-   draws each part in the right order and triggers a download.
-*/
-async function downloadCreature(){
-    playRandomSound();
-    const width = 320, height = 420;
-    const canvas = document.createElement('canvas');
-    canvas.width = width; canvas.height = height;
-    const ctx = canvas.getContext('2d');
-
-    // fill white background (optional)
-    ctx.fillStyle = "#ffffff00"; // transparent background
-    ctx.fillRect(0,0,width,height);
-
-    // helper to load image
-    function loadImg(src){
-        return new Promise((res, rej)=>{
-            const i = new Image();
-            i.onload = ()=>res(i);
-            i.onerror = ()=>res(null); // resolve null so download still works even if an image missing
-            i.src = src;
-        });
-    }
-
-    // list draw order and positions matching preview CSS
-    const drawOrder = [
-        {key:'body', x:90, y:140},
-        {key:'head', x:90, y:10},
-        {key:'left-arm', keyPart:'leftArm', x:20, y:160},
-        {key:'right-arm', keyPart:'rightArm', x:160, y:160},
-        {key:'left-leg', keyPart:'leftLeg', x:60, y:280},
-        {key:'right-leg', keyPart:'rightLeg', x:120, y:280}
-    ];
-
-    // draw sequentially
-    for(const item of drawOrder){
-        const key = item.keyPart ? item.keyPart : item.key; // mapping for parts that use different key name
-        // normalize to our parts object keys:
-        const pKey = key.replace(/-/g,'');
-        // handle mapping: body/head/leftArm etc.
-        let partKey = pKey;
-        if(pKey === 'leftarm') partKey = 'leftArm';
-        if(pKey === 'rightarm') partKey = 'rightArm';
-        if(pKey === 'leftleg') partKey = 'leftLeg';
-        if(pKey === 'rightleg') partKey = 'rightLeg';
-
-        // find the current src
-        const src = parts[partKey][index[partKey]];
-        const img = await loadImg(src);
-        if(img){
-            // scale drawn image to same size as preview (140x140)
-            ctx.drawImage(img, item.x, item.y, 140, 140);
-        }
-    }
-
-    // create png and download
-    const dataUrl = canvas.toDataURL('image/png');
-    const a = document.createElement('a');
-    a.href = dataUrl;
-    a.download = 'my-stuffed-animal.png';
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
+/* Download preview */
+function downloadCreature() {
+    html2canvas(document.getElementById("preview-area")).then(canvas => {
+        const link = document.createElement("a");
+        link.download = "my-creature.png";
+        link.href = canvas.toDataURL();
+        link.click();
+    });
 }
 
-/* -------- Sound engine (mix of several cute sounds) --------
-   Uses WebAudio to synthesize short tones / chimes. Each interaction
-   triggers a small randomized sound from a few presets.
-*/
-const AudioContext = window.AudioContext || window.webkitAudioContext;
-let audioCtx = null;
-function ensureAudio(){
-    if(!audioCtx) audioCtx = new AudioContext();
-}
-
-/* small utility to play a tone burst */
-function playTone(freq, duration=0.12, type='sine', gain=0.08, attack=0.01){
-    ensureAudio();
-    const now = audioCtx.currentTime;
-    const osc = audioCtx.createOscillator();
-    const g = audioCtx.createGain();
-    osc.type = type;
-    osc.frequency.value = freq;
-    g.gain.setValueAtTime(0.0001, now);
-    g.gain.linearRampToValueAtTime(gain, now + attack);
-    g.gain.exponentialRampToValueAtTime(0.0001, now + duration);
-    osc.connect(g); g.connect(audioCtx.destination);
-    osc.start(now);
-    osc.stop(now + duration + 0.02);
-}
-
-/* tiny percussive click using noise */
-function playClickSound(){
-    ensureAudio();
-    const bufferSize = 0.02 * audioCtx.sampleRate;
-    const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
-    const data = buffer.getChannelData(0);
-    for(let i=0;i<data.length;i++){
-        data[i] = (Math.random()*2-1) * Math.exp(-i/buffer.length*6);
-    }
-    const source = audioCtx.createBufferSource();
-    source.buffer = buffer;
-    const g = audioCtx.createGain();
-    g.gain.value = 0.08;
-    source.connect(g); g.connect(audioCtx.destination);
-    source.start();
-}
-
-/* different cute presets - melodic / chime / boing */
-function playRandomSound(isRandomize=false){
-    // small random selection of patterns
-    ensureAudio();
-    const choice = Math.floor(Math.random()*6);
-    if(choice === 0){
-        // tiny arpeggio
-        playTone(880, 0.10, 'sine', 0.06);
-        setTimeout(()=>playTone(1100, 0.09, 'sine', 0.05), 70);
-    } else if(choice === 1){
-        // chime-ish
-        playTone(660, 0.18, 'triangle', 0.06);
-        setTimeout(()=>playTone(880, 0.14, 'sine', 0.035), 90);
-    } else if(choice === 2){
-        // boing springy
-        playTone(320, 0.16, 'sawtooth', 0.08);
-    } else if(choice === 3){
-        // two quick plinks
-        playTone(900, 0.08, 'square', 0.06);
-        setTimeout(()=>playTone(1080, 0.08, 'square', 0.04), 60);
-    } else if(choice === 4){
-        // bubble drop
-        playTone(520, 0.12, 'sine', 0.05);
-        setTimeout(()=>playTone(420, 0.12, 'sine', 0.04), 80);
-    } else {
-        // playful cluster for randomize (longer)
-        playTone(720, 0.12, 'triangle', 0.06);
-        setTimeout(()=>playTone(840, 0.12, 'triangle', 0.05), 70);
-        setTimeout(()=>playTone(1000, 0.10, 'sine', 0.04), 140);
-    }
-
-    // small additional click for UI feedback
-    setTimeout(()=>playClickSound(), 6);
-}
-
-/* small click used for tab/button clicks */
-function playClick(){ playClickSound(); }
-
-/* -------- animated bubbles creation -------- */
-(function makeBubbles(){
-    const container = document.querySelector('.bubbles');
-    const colors = ['rgba(255,255,255,0.6)','rgba(240,255,255,0.5)','rgba(220,255,245,0.45)'];
-    const count = 12;
-    for(let i=0;i<count;i++){
-        const b = document.createElement('div');
-        b.className = 'bubble';
-        const size = 40 + Math.random()*140;
-        b.style.width = size + 'px';
-        b.style.height = size + 'px';
-        b.style.left = (Math.random()*110) + '%';
-        b.style.bottom = (-Math.random()*60 - 10) + 'vh';
-        b.style.background = colors[Math.floor(Math.random()*colors.length)];
-        b.style.opacity = 0.6 + Math.random()*0.3;
-        const duration = 12 + Math.random()*18;
-        b.style.animationDuration = duration + 's';
-        b.style.animationDelay = (-Math.random()*duration) + 's';
-        container.appendChild(b);
-    }
-})();
-
-/* -------- small UX: allow pressing arrow keys when a carousel is open -------- */
-document.addEventListener('keydown', (e)=>{
-    const visible = document.querySelector('.carousel[style*="display:flex"], .carousel:not([style])');
-    if(!visible) return;
-    // find which carousel visible
-    const id = Array.from(document.querySelectorAll('.carousel')).find(c=> getComputedStyle(c).display !== 'none')?.id;
-    if(!id) return;
-    const part = id.replace('carousel-','');
-    if(e.key === 'ArrowRight') { next(part); }
-    if(e.key === 'ArrowLeft') { prev(part); }
-});
-
-/* expose functions to global scope for inline onclicks */
-window.next = next;
-window.prev = prev;
-window.showTab = function(part){ showTab(part); playRandomSound(); };
-window.randomizeAll = randomizeAll;
-window.downloadCreature = downloadCreature;
-window.playClick = playClick;
-
+/* Initialize */
+Object.keys(files).forEach(update);
+showTab("head");
 </script>
+
 </body>
 </html>
