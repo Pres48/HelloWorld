@@ -10,14 +10,22 @@
             height: 100vh;
             margin: 0;
             background-color: white;
+            flex-direction: column;
         }
         h1 {
             font-size: 50px;
-            color: #1E90FF;   /* Neon blue */
+            color: #1E90FF; /* neon blue */
         }
     </style>
 </head>
 <body>
-    <h1>Hello World!</h1>
+    <h1 id="message">Hello World!</h1>
+
+    <script>
+        let name = prompt("What is your name?");
+        if (name) {
+            document.getElementById("message").textContent = "Hello, " + name + "!";
+        }
+    </script>
 </body>
 </html>
