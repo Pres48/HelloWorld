@@ -1,0 +1,25 @@
+{
+  "head": [
+    "bear.png",
+    "dragon.png",
+    "elephant.png",
+    "unicorn.png",
+    "tiger.png",
+    "giraffe.png"
+  ],
+  "body": [
+    "bear.png"
+  ],
+  "leftArm": [
+    "left-bear.png"
+  ],
+  "rightArm": [
+    "right-bear.png"
+  ],
+  "leftLeg": [
+    "left-bear.png"
+  ],
+  "rightLeg": [
+    "right-bear.png"
+  ]
+}
