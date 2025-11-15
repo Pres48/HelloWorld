@@ -5,298 +5,318 @@
 <meta name="viewport" content="width=device-width,initial-scale=1" />
 <title>Stuffed Animal Mixer</title>
 <style>
-    :root{ --accent-1:#1a92b6; --accent-2:#6cd4b4; --panel:#ffffffcc; --dashed:#7fd6ff; }
+  :root{
+    --accent-1:#1a92b6;
+    --accent-2:#6cd4b4;
+    --panel:#ffffffcc;
+    --dashed:#7fd6ff;
+  }
+  html,body{height:100%;margin:0;padding:0;font-family:"Comic Sans MS",Fredoka,sans-serif;}
+  body{
+    background:linear-gradient(#e3fff1,#c7e8ff);
+    display:flex;flex-direction:column;align-items:center;padding:20px;box-sizing:border-box;
+  }
+  h1{ margin:0 0 14px; color:var(--accent-1); font-size:40px; text-shadow:2px 2px #fff; }
 
-    html,body{ height:100%; margin:0; }
-    body {
-        font-family: 'Comic Sans MS', 'Fredoka', sans-serif;
-        background: linear-gradient(#e3fff1, #c7e8ff);
-        display:flex; flex-direction:column; align-items:center;
-        padding:20px; box-sizing:border-box; overflow-x:hidden;
-    }
-    h1{ margin:0 0 18px 0; color:var(--accent-1); font-size:40px; text-shadow:2px 2px #fff; }
+  .page-row{ display:flex; gap:24px; width:100%; max-width:1100px; justify-content:center; align-items:flex-start; }
 
-    .page-row{ display:flex; gap:28px; width:100%; max-width:1100px; justify-content:center; align-items:flex-start; }
+  /* left tabs */
+  #tabs{ display:flex; flex-direction:column; gap:12px; width:150px; }
+  #tabs button{
+    width:150px; padding:10px; border-radius:12px; border:none; background:var(--accent-2); color:#fff; font-weight:700;
+    cursor:pointer; box-shadow:0 3px 0 #4aa88b;
+  }
+  #tabs button.active{ outline:3px solid rgba(255,255,255,0.35); transform:translateY(-2px); }
 
-    /* Tabs */
-    #tabs{ display:flex; flex-direction:column; gap:10px; width:150px; position:relative; z-index:2; }
-    #tabs button{ width:140px; background:var(--accent-2); border:none; color:white; padding:10px; border-radius:12px; box-shadow:0 3px 0 #4aa88b; cursor:pointer; font-weight:700; }
+  /* carousel area */
+  #carousel-area{ width:280px; }
+  .carousel{
+    display:flex; flex-direction:column; align-items:center; justify-content:space-between;
+    width:280px; height:360px; padding:14px; border-radius:14px;
+    background:var(--panel); border:3px dashed var(--dashed); box-shadow:0 6px 14px rgba(0,0,0,0.12);
+  }
+  .carousel h3{ margin:0;color:var(--accent-1); font-weight:700; }
+  .carousel img{ width:220px; height:220px; object-fit:contain; border-radius:12px; background:white; border:3px solid #cfefff; }
 
-    /* Carousel */
-    #carousel-area{ width:260px; z-index:2; }
-    .carousel{
-        display:flex; flex-direction:column; align-items:center; background:var(--panel); padding:14px; border-radius:14px;
-        border:3px dashed var(--dashed); box-shadow:0 6px 14px rgba(0,0,0,0.12);
-        width:260px; height:340px; justify-content:space-between;
-    }
-    .carousel h3{ margin:0; color:var(--accent-1); }
-    .carousel img{ width:220px; height:220px; object-fit:contain; background:white; border-radius:12px; padding:8px; border:3px solid #b8edff; box-shadow:0 4px 8px rgba(0,0,0,0.12); flex-shrink:0; }
-    .carousel .controls{ display:flex; gap:8px; }
+  .controls{ display:flex; gap:8px; }
 
-    /* Preview area */
-    .preview-wrap{ display:flex; flex-direction:column; align-items:center; gap:10px; z-index:2; }
-    #preview-area{
-        width:360px; height:480px; background:var(--panel); border-radius:20px; border:4px solid #7fe6c9;
-        box-shadow:0 6px 18px rgba(0,0,0,0.14); position:relative; overflow:hidden; display:flex; align-items:center; justify-content:center;
-    }
+  /* preview */
+  .preview-wrap{ display:flex; flex-direction:column; align-items:center; gap:10px; }
+  #preview-area{
+    width:420px; height:520px; background:var(--panel); border-radius:20px; border:4px solid #7fe6c9;
+    box-shadow:0 6px 18px rgba(0,0,0,0.14); position:relative; overflow:hidden; display:flex; align-items:center; justify-content:center;
+  }
 
-    /* INDIVIDUAL PART SIZES — Option 1 (bigger body, same head) */
-    .part{ position:absolute; object-fit:contain; pointer-events:none; transition:transform .28s ease; }
+  /* Part sizing & positions (tuned for your bear art) */
+  .part{ position:absolute; object-fit:contain; pointer-events:none; transition:transform .2s ease; }
 
-    #head{ width:130px; height:auto; top:14px; left:112px; }
-    #body{ width:190px; height:auto; top:120px; left:85px; }              /* bigger body */
-    #left-arm{ width:160px; height:auto; top:148px; left:8px; }           /* arms moved outward */
-    #right-arm{ width:160px; height:auto; top:148px; left:192px; }
-    #left-leg{ width:120px; height:auto; top:320px; left:90px; }         /* legs slightly lower */
-    #right-leg{ width:120px; height:auto; top:320px; left:170px; }
+  /* Option 1: bigger body, same head */
+  #head{ width:170px; top:20px; left:125px; }          /* head slightly larger & centered */
+  #body{ width:260px; top:140px; left:80px; }          /* bigger body */
+  #left-arm{ width:210px; top:140px; left: -6px; }     /* arms wider, moved outward */
+  #right-arm{ width:210px; top:140px; left: 215px; }
+  #left-leg{ width:140px; top:350px; left:95px; }      /* legs lower and slightly wider */
+  #right-leg{ width:140px; top:350px; left:205px; }
 
-    /* action buttons under preview (Option B) */
-    #action-row{ display:flex; gap:12px; justify-content:center; margin-top:10px; }
-    .action-btn{ padding:10px 14px; border-radius:12px; background:var(--accent-2); color:white; font-weight:800; border:none; box-shadow:0 3px 0 #4aa88b; cursor:pointer; }
+  /* action buttons under preview (Option B) */
+  #action-row{ display:flex; gap:12px; justify-content:center; margin-top:8px; }
+  .action-btn{ padding:10px 14px; border-radius:12px; background:var(--accent-2); color:white; font-weight:800; border:none; box-shadow:0 3px 0 #4aa88b; cursor:pointer; }
 
-    /* Bounce animation */
-    @keyframes bounce{ 0%{transform:translateY(0) scale(1);}30%{transform:translateY(-12px) scale(1.06);}60%{transform:translateY(0) scale(.995);}100%{transform:translateY(0) scale(1);} }
-    .do-bounce{ animation: bounce .6s both; }
+  /* small responsive adjustments */
+  @media (max-width:1000px){
+    #preview-area{ width:320px; height:420px; }
+    #body{ width:210px; left:55px; }
+    #head{ width:140px; left:92px; }
+    #left-arm,#right-arm{ width:170px; top:120px; }
+    #left-leg,#right-leg{ width:110px; top:300px; }
+  }
 
-    /* Bubbles */
-    .bubbles{ position:fixed; left:0; top:0; width:100%; height:100%; pointer-events:none; overflow:hidden; z-index:0; }
-    .bubble{ position:absolute; border-radius:50%; background: rgba(255,255,255,0.6); mix-blend-mode:overlay; filter: blur(6px); animation: floatUp linear infinite; opacity:.9; }
-    @keyframes floatUp{ from{ transform: translateY(120vh) scale(1);} to{ transform: translateY(-40vh) scale(.9);} }
+  /* bubbles (background decorative) */
+  .bubbles{ position:fixed; left:0; top:0; width:100%; height:100%; pointer-events:none; z-index:0; }
+  .bubble{ position:absolute; border-radius:50%; background:rgba(255,255,255,0.6); filter:blur(6px); opacity:.85; animation: floatUp linear infinite; mix-blend-mode:overlay; }
+  @keyframes floatUp{ from{ transform:translateY(120vh) scale(1);} to{ transform:translateY(-40vh) scale(.9);} }
 
-    .page-row, h1{ position:relative; z-index:1; }
-
-    @media (max-width:900px){
-        .page-row{ flex-direction:column; align-items:center; }
-        #tabs{ flex-direction:row; width:auto; flex-wrap:wrap; }
-        #tabs button{ width:auto; }
-    }
+  /* ensure UI sits above bubbles */
+  .page-row, h1{ position:relative; z-index:2; }
 </style>
 </head>
 <body>
-
 <h1>Stuffed Animal Mixer</h1>
 
-<!-- animated bubbles container -->
+<!-- bubbles -->
 <div class="bubbles" aria-hidden="true"></div>
-
 <script>
-(function makeBubbles(){
+  (function makeBubbles(){
     const container = document.querySelector('.bubbles');
     const colors = ['rgba(255,255,255,0.6)','rgba(240,255,255,0.5)','rgba(220,255,245,0.45)'];
-    const count = 14;
-    for(let i=0;i<count;i++){
-        const b = document.createElement('div');
-        b.className = 'bubble';
-        const size = 30 + Math.random()*120;
-        b.style.width = size + 'px';
-        b.style.height = size + 'px';
-        b.style.left = (Math.random()*100) + 'vw';
-        b.style.bottom = (-Math.random()*60 - 10) + 'vh';
-        b.style.background = colors[Math.floor(Math.random()*colors.length)];
-        b.style.opacity = 0.5 + Math.random()*0.4;
-        b.style.animationDuration = (12 + Math.random()*18) + 's';
-        b.style.animationDelay = (-Math.random()*20) + 's';
-        container.appendChild(b);
+    for(let i=0;i<14;i++){
+      const b = document.createElement('div');
+      b.className = 'bubble';
+      const size = 30 + Math.random()*110;
+      b.style.width = size+'px';
+      b.style.height = size+'px';
+      b.style.left = (Math.random()*100)+'vw';
+      b.style.bottom = (-Math.random()*60 - 10)+'vh';
+      b.style.background = colors[Math.floor(Math.random()*colors.length)];
+      b.style.animationDuration = (10 + Math.random()*18)+'s';
+      b.style.animationDelay = (-Math.random()*20)+'s';
+      container.appendChild(b);
     }
-})();
+  })();
 </script>
 
 <div class="page-row">
 
-    <!-- tabs -->
-    <div id="tabs">
-        <button onclick="playClick(); showTab('head')">Head</button>
-        <button onclick="playClick(); showTab('body')">Body</button>
-        <button onclick="playClick(); showTab('leftArm')">Left Arm</button>
-        <button onclick="playClick(); showTab('rightArm')">Right Arm</button>
-        <button onclick="playClick(); showTab('leftLeg')">Left Leg</button>
-        <button onclick="playClick(); showTab('rightLeg')">Right Leg</button>
+  <!-- tabs column -->
+  <div id="tabs">
+    <button data-part="head">Head</button>
+    <button data-part="body">Body</button>
+    <button data-part="leftArm">Left Arm</button>
+    <button data-part="rightArm">Right Arm</button>
+    <button data-part="leftLeg">Left Leg</button>
+    <button data-part="rightLeg">Right Leg</button>
+  </div>
+
+  <!-- carousel -->
+  <div id="carousel-area">
+    <div class="carousel" id="carousel-head" data-part="head">
+      <h3>Head</h3>
+      <img id="head-img" alt="head preview">
+      <div class="controls"><button data-action="prev" data-part="head">Prev</button><button data-action="next" data-part="head">Next</button></div>
     </div>
 
-    <!-- carousel -->
-    <div id="carousel-area">
-        <div class="carousel" id="carousel-head" data-part="head">
-            <h3>Head</h3>
-            <img id="head-img" alt="head preview">
-            <div class="controls"><button onclick="playClick(); prev('head')">Prev</button><button onclick="playClick(); next('head')">Next</button></div>
-        </div>
-
-        <div class="carousel" id="carousel-body" style="display:none;" data-part="body">
-            <h3>Body</h3>
-            <img id="body-img" alt="body preview">
-            <div class="controls"><button onclick="playClick(); prev('body')">Prev</button><button onclick="playClick(); next('body')">Next</button></div>
-        </div>
-
-        <div class="carousel" id="carousel-leftArm" style="display:none;" data-part="leftArm">
-            <h3>Left Arm</h3>
-            <img id="leftArm-img" alt="left arm preview">
-            <div class="controls"><button onclick="playClick(); prev('leftArm')">Prev</button><button onclick="playClick(); next('leftArm')">Next</button></div>
-        </div>
-
-        <div class="carousel" id="carousel-rightArm" style="display:none;" data-part="rightArm">
-            <h3>Right Arm</h3>
-            <img id="rightArm-img" alt="right arm preview">
-            <div class="controls"><button onclick="playClick(); prev('rightArm')">Prev</button><button onclick="playClick(); next('rightArm')">Next</button></div>
-        </div>
-
-        <div class="carousel" id="carousel-leftLeg" style="display:none;" data-part="leftLeg">
-            <h3>Left Leg</h3>
-            <img id="leftLeg-img" alt="left leg preview">
-            <div class="controls"><button onclick="playClick(); prev('leftLeg')">Prev</button><button onclick="playClick(); next('leftLeg')">Next</button></div>
-        </div>
-
-        <div class="carousel" id="carousel-rightLeg" style="display:none;" data-part="rightLeg">
-            <h3>Right Leg</h3>
-            <img id="rightLeg-img" alt="right leg preview">
-            <div class="controls"><button onclick="playClick(); prev('rightLeg')">Prev</button><button onclick="playClick(); next('rightLeg')">Next</button></div>
-        </div>
+    <div class="carousel" id="carousel-body" data-part="body" style="display:none;">
+      <h3>Body</h3>
+      <img id="body-img" alt="body preview">
+      <div class="controls"><button data-action="prev" data-part="body">Prev</button><button data-action="next" data-part="body">Next</button></div>
     </div>
 
-    <!-- preview + action buttons below preview (Option B) -->
-    <div class="preview-wrap">
-        <div id="preview-area" aria-label="Assembled stuffed animal">
-            <img id="head" class="part" alt="head">
-            <img id="body" class="part" alt="body">
-            <img id="left-arm" class="part" alt="left arm">
-            <img id="right-arm" class="part" alt="right arm">
-            <img id="left-leg" class="part" alt="left leg">
-            <img id="right-leg" class="part" alt="right leg">
-        </div>
-
-        <div id="action-row">
-            <button class="action-btn" onclick="playClick(); randomizeAll()">🎲 Randomize All</button>
-            <button class="action-btn" onclick="playClick(); downloadCreature()">💾 Download My Creature</button>
-        </div>
+    <div class="carousel" id="carousel-leftArm" data-part="leftArm" style="display:none;">
+      <h3>Left Arm</h3>
+      <img id="leftArm-img" alt="left arm preview">
+      <div class="controls"><button data-action="prev" data-part="leftArm">Prev</button><button data-action="next" data-part="leftArm">Next</button></div>
     </div>
+
+    <div class="carousel" id="carousel-rightArm" data-part="rightArm" style="display:none;">
+      <h3>Right Arm</h3>
+      <img id="rightArm-img" alt="right arm preview">
+      <div class="controls"><button data-action="prev" data-part="rightArm">Prev</button><button data-action="next" data-part="rightArm">Next</button></div>
+    </div>
+
+    <div class="carousel" id="carousel-leftLeg" data-part="leftLeg" style="display:none;">
+      <h3>Left Leg</h3>
+      <img id="leftLeg-img" alt="left leg preview">
+      <div class="controls"><button data-action="prev" data-part="leftLeg">Prev</button><button data-action="next" data-part="leftLeg">Next</button></div>
+    </div>
+
+    <div class="carousel" id="carousel-rightLeg" data-part="rightLeg" style="display:none;">
+      <h3>Right Leg</h3>
+      <img id="rightLeg-img" alt="right leg preview">
+      <div class="controls"><button data-action="prev" data-part="rightLeg">Prev</button><button data-action="next" data-part="rightLeg">Next</button></div>
+    </div>
+  </div>
+
+  <!-- preview & buttons (buttons under preview) -->
+  <div class="preview-wrap">
+    <div id="preview-area" aria-label="Assembled stuffed animal">
+      <img id="head" class="part" alt="head">
+      <img id="body" class="part" alt="body">
+      <img id="left-arm" class="part" alt="left arm">
+      <img id="right-arm" class="part" alt="right arm">
+      <img id="left-leg" class="part" alt="left leg">
+      <img id="right-leg" class="part" alt="right leg">
+    </div>
+
+    <div id="action-row">
+      <button class="action-btn" id="randomizeBtn">🎲 Randomize All</button>
+      <button class="action-btn" id="downloadBtn">💾 Download My Creature</button>
+    </div>
+  </div>
 
 </div>
 
-<!-- include html2canvas for download functionality -->
+<!-- html2canvas library for download -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
 <script>
-/* === file list (matches your current repo) ===
-   Add new animal filenames later using the same pattern */
+/* ---------- assets - match your repo exactly ---------- */
 const files = {
-    head: ["img/heads/bear.png"],
-    body: ["img/bodies/bear.png"],
-    leftArm: ["img/arms/left-bear.png"],
-    rightArm: ["img/arms/right-bear.png"],
-    leftLeg: ["img/legs/left-bear.png"],
-    rightLeg: ["img/legs/right-bear.png"]
+  head: ["img/heads/bear.png"],
+  body: ["img/bodies/bear.png"],
+  leftArm: ["img/arms/left-bear.png"],
+  rightArm: ["img/arms/right-bear.png"],
+  leftLeg: ["img/legs/left-bear.png"],
+  rightLeg: ["img/legs/right-bear.png"]
 };
 
 const index = { head:0, body:0, leftArm:0, rightArm:0, leftLeg:0, rightLeg:0 };
 
-/* Update function:
-   control image IDs are camelCase: e.g. leftArm-img
-   preview image IDs are dashed: e.g. left-arm */
+/* helper to map part -> control id and preview id */
+function controlId(part){ return part + "-img"; }                 // head-img, leftArm-img
+function previewId(part){ return part.replace(/([A-Z])/g,"-$1").toLowerCase(); } // head, left-arm
+
+/* update single part control + preview */
 function update(part){
-    const controlId = part + "-img";                      // head-img, leftArm-img, etc.
-    const previewId = part.replace(/([A-Z])/g,"-$1").toLowerCase(); // head, left-arm, etc.
-
-    const controlEl = document.getElementById(controlId);
-    const previewEl = document.getElementById(previewId);
-
-    if(controlEl) controlEl.src = files[part][index[part]];
-    if(previewEl) previewEl.src = files[part][index[part]];
+  const ctrl = document.getElementById(controlId(part));
+  const prev = document.getElementById(previewId(part));
+  if(ctrl) ctrl.src = files[part][index[part]];
+  if(prev) prev.src = files[part][index[part]];
 }
 
 /* next / prev */
 function next(part){
-    index[part] = (index[part] + 1) % files[part].length;
-    update(part);
-    playRandomSound();
+  index[part] = (index[part]+1) % files[part].length;
+  update(part);
+  playClickSound();
 }
 function prev(part){
-    index[part] = (index[part] - 1 + files[part].length) % files[part].length;
-    update(part);
-    playRandomSound();
+  index[part] = (index[part]-1 + files[part].length) % files[part].length;
+  update(part);
+  playClickSound();
 }
 
-/* show tab */
+/* show tab: hide others, show requested */
 function showTab(part){
-    document.querySelectorAll(".carousel").forEach(c => c.style.display = "none");
-    const el = document.getElementById("carousel-" + part);
-    if(el) el.style.display = "flex";
+  document.querySelectorAll(".carousel").forEach(c => c.style.display = "none");
+  const el = document.getElementById("carousel-" + part);
+  if(el) el.style.display = "flex";
+  // active button highlight
+  document.querySelectorAll('#tabs button').forEach(b => b.classList.remove('active'));
+  const btn = document.querySelector('#tabs button[data-part="'+part+'"]');
+  if(btn) btn.classList.add('active');
 }
 
-/* init */
-Object.keys(files).forEach(update);
-showTab("head");
-
-/* Randomize all (with small bounce) */
+/* randomize all with tiny bounce */
 function randomizeAll(){
-    Object.keys(files).forEach(p=>{
-        index[p] = Math.floor(Math.random() * files[p].length);
-        update(p);
-        const el = document.getElementById(p.replace(/([A-Z])/g,"-$1").toLowerCase());
-        if(el){
-            el.classList.remove("do-bounce");
-            void el.offsetWidth;
-            el.classList.add("do-bounce");
-        }
-    });
-    playRandomSound(true);
+  Object.keys(files).forEach(p=>{
+    index[p] = Math.floor(Math.random()*files[p].length);
+    update(p);
+    const el = document.getElementById(previewId(p));
+    if(el){
+      el.classList.remove('do-bounce');
+      void el.offsetWidth;
+      el.classList.add('do-bounce');
+    }
+  });
+  playClickSound();
 }
 
-/* Download using html2canvas */
+/* download assembled creature using html2canvas */
 function downloadCreature(){
-    // temporarily remove bubbles from view for screenshot
-    const bubbles = document.querySelector('.bubbles');
-    if(bubbles) bubbles.style.display = 'none';
-    html2canvas(document.getElementById('preview-area'), { backgroundColor: null }).then(canvas=>{
-        const a = document.createElement('a');
-        a.href = canvas.toDataURL('image/png');
-        a.download = 'my-stuffed-animal.png';
-        a.click();
-        if(bubbles) bubbles.style.display = '';
-    });
+  // hide bubbles for cleaner capture
+  const bubbles = document.querySelector('.bubbles');
+  const old = bubbles.style.display;
+  bubbles.style.display = 'none';
+  html2canvas(document.getElementById('preview-area'), { backgroundColor: null }).then(canvas=>{
+    const a = document.createElement('a');
+    a.href = canvas.toDataURL('image/png');
+    a.download = 'my-stuffed-animal.png';
+    a.click();
+    bubbles.style.display = old;
+  });
 }
 
-/* Simple random cute sounds (WebAudio) */
+/* --- sound: tiny random cute sounds using WebAudio --- */
 const AudioCtx = window.AudioContext || window.webkitAudioContext;
 let audioCtx = null;
 function ensureAudio(){ if(!audioCtx) audioCtx = new AudioCtx(); }
 
-function playTone(freq, dur=0.12, type='sine', vol=0.07){
-    ensureAudio();
-    const now = audioCtx.currentTime;
-    const o = audioCtx.createOscillator();
-    const g = audioCtx.createGain();
-    o.type = type; o.frequency.value = freq;
-    g.gain.setValueAtTime(vol, now);
-    g.gain.exponentialRampToValueAtTime(0.0001, now + dur);
-    o.connect(g); g.connect(audioCtx.destination);
-    o.start(now); o.stop(now + dur + 0.02);
+function playTone(freq, dur=0.12, type='sine', vol=0.06){
+  ensureAudio();
+  const now = audioCtx.currentTime;
+  const o = audioCtx.createOscillator();
+  const g = audioCtx.createGain();
+  o.type = type; o.frequency.value = freq;
+  g.gain.setValueAtTime(vol, now); g.gain.exponentialRampToValueAtTime(0.0001, now + dur);
+  o.connect(g); g.connect(audioCtx.destination);
+  o.start(now); o.stop(now + dur + 0.02);
 }
 function playNoise(){
-    ensureAudio();
-    const bufferSize = 0.02 * audioCtx.sampleRate;
-    const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
-    const data = buffer.getChannelData(0);
-    for(let i=0;i<data.length;i++) data[i] = (Math.random()*2-1) * Math.exp(-i/buffer.length*6);
-    const src = audioCtx.createBufferSource();
-    src.buffer = buffer;
-    const g = audioCtx.createGain();
-    g.gain.value = 0.06;
-    src.connect(g); g.connect(audioCtx.destination);
-    src.start();
+  ensureAudio();
+  const buf = audioCtx.createBuffer(1, 0.02 * audioCtx.sampleRate, audioCtx.sampleRate);
+  const d = buf.getChannelData(0);
+  for(let i=0;i<d.length;i++) d[i] = (Math.random()*2-1) * Math.exp(-i/d.length*6);
+  const s = audioCtx.createBufferSource(); s.buffer = buf;
+  const g = audioCtx.createGain(); g.gain.value = 0.06;
+  s.connect(g); g.connect(audioCtx.destination); s.start();
 }
-function playRandomSound(isBig=false){
-    ensureAudio();
-    const c = Math.floor(Math.random()*5);
-    if(c===0){ playTone(720,0.10,'triangle',0.06); setTimeout(()=>playTone(860,0.09,'sine',0.04),60); }
-    else if(c===1){ playTone(520,0.12,'sine',0.06); }
-    else if(c===2){ playTone(360,0.16,'sawtooth',0.08); }
-    else if(c===3){ playTone(900,0.08,'square',0.06); setTimeout(()=>playTone(1080,0.08,'square',0.04),60); }
-    else { playNoise(); }
+function playClickSound(){
+  const choice = Math.floor(Math.random()*5);
+  if(choice===0){ playTone(720,0.10,'triangle',0.06); setTimeout(()=>playTone(860,0.09,'sine',0.04),60); }
+  else if(choice===1){ playTone(520,0.12,'sine',0.06); }
+  else if(choice===2){ playTone(360,0.16,'sawtooth',0.08); }
+  else if(choice===3){ playTone(900,0.08,'square',0.06); setTimeout(()=>playTone(1080,0.08,'square',0.04),60); }
+  else { playNoise(); }
 }
-function playClick(){ playRandomSound(); }
+function playClick(){ playClickSound(); }
 
-/* expose for inline onclicks */
-window.next = next; window.prev = prev; window.showTab = function(p){ showTab(p); playClick(); };
-window.randomizeAll = randomizeAll; window.downloadCreature = downloadCreature; window.playClick = playClick;
+/* ------------- wiring: event listeners ------------- */
+/* tab buttons */
+document.querySelectorAll('#tabs button').forEach(btn=>{
+  btn.addEventListener('click', (e)=>{
+    const part = btn.dataset.part;
+    showTab(part);
+    playClick();
+  });
+});
+
+/* carousel controls (prev/next) using delegation */
+document.getElementById('carousel-area').addEventListener('click', (e)=>{
+  const btn = e.target.closest('button[data-action]');
+  if(!btn) return;
+  const part = btn.dataset.part;
+  const action = btn.dataset.action;
+  if(action === 'prev') prev(part);
+  else if(action === 'next') next(part);
+});
+
+/* action buttons */
+document.getElementById('randomizeBtn').addEventListener('click', ()=>{ randomizeAll(); });
+document.getElementById('downloadBtn').addEventListener('click', ()=>{ downloadCreature(); });
+
+/* initialize images & UI */
+Object.keys(files).forEach(update);
+showTab('head');
 
 </script>
 </body>
