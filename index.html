@@ -5,27 +5,50 @@
     <style>
         body {
             display: flex;
+            flex-direction: column;
             justify-content: center;
             align-items: center;
             height: 100vh;
             margin: 0;
             background-color: white;
-            flex-direction: column;
         }
         h1 {
-            font-size: 100px;
-            color: #1E90FF; /* neon blue */
+            font-size: 50px;
+            color: #1E90FF; /* Neon blue */
+            margin-bottom: 20px;
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 18px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+        #message {
+            margin-top: 20px;
+            font-size: 28px;
+            color: #1E90FF;
         }
     </style>
 </head>
+
 <body>
-    <h1 id="message">Hello World!</h1>
+
+    <h1>Hello World!</h1>
+
+    <button onclick="askName()">Click Me</button>
+
+    <div id="message"></div>
 
     <script>
-        let name = prompt("What is your name?");
-        if (name) {
-            document.getElementById("message").textContent = "Hello, " + name + "!";
+        function askName() {
+            let name = prompt("What is your name?");
+            if (name && name.trim() !== "") {
+                document.getElementById("message").textContent =
+                    "Nice to meet you, " + name + "! Welcome to your awesome webpage!";
+            }
         }
     </script>
+
 </body>
 </html>
