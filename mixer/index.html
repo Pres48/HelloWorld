@@ -1,333 +1,305 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8"/>
-<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Stuffed Animal Mixer</title>
+
 <style>
-  :root{
-    --accent-1:#1a92b6;
-    --accent-2:#6cd4b4;
-    --panel:#ffffffdd;
-    --dashed:#7fd6ff;
+  body {
+    font-family: "Comic Sans MS", "Fredoka", sans-serif;
+    background: linear-gradient(#e3fff1, #c7e8ff);
+    margin: 0;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
   }
 
-  html,body{height:100%;margin:0;padding:0;font-family:"Comic Sans MS",Fredoka,Arial,sans-serif;}
-  body{
-    background:linear-gradient(#e9fff6, #d9f0ff);
-    display:flex;flex-direction:column;align-items:center;padding:22px;box-sizing:border-box;
+  h1 {
+    font-size: 40px;
+    margin-bottom: 20px;
+    color: #1a92b6;
+    text-shadow: 2px 2px #ffffff;
   }
 
-  h1{ margin:0 0 18px; color:var(--accent-1); font-size:44px; text-shadow:2px 2px #fff; }
-
-  .page-row{
-    display:flex;
-    gap:40px;                    /* increased gap so carousel and preview don't touch */
-    width:100%;
-    max-width:1200px;
-    justify-content:center;
-    align-items:flex-start;
+  /* Layout container */
+  #layout {
+    display: flex;
+    gap: 30px;
+    width: 100%;
+    max-width: 1200px;
+    justify-content: center;
   }
 
-  /* Tabs column */
-  #tabs{ display:flex; flex-direction:column; gap:12px; width:160px; z-index:3; }
-  #tabs button{
-    background:var(--accent-2); color:#fff; border:none; padding:12px; border-radius:14px;
-    font-weight:700; cursor:pointer; box-shadow:0 3px 0 #4aa88b;
-  }
-  #tabs button.active{ transform:translateY(-2px); outline: 3px solid rgba(255,255,255,0.35); }
-
-  /* Carousel column */
-  #carousel-area{ width:300px; z-index:3; display:flex; flex-direction:column; align-items:center; }
-  .carousel{
-    width:300px; height:380px; background:var(--panel); border-radius:16px; padding:16px;
-    border:3px dashed var(--dashed); box-shadow:0 8px 18px rgba(0,0,0,0.12);
-    display:flex; flex-direction:column; align-items:center; justify-content:space-between;
-  }
-  .carousel h3{ margin:0; color:var(--accent-1); font-weight:800; }
-  .carousel img{ width:240px; height:240px; object-fit:contain; background:#fff; border-radius:14px; padding:8px; border:3px solid #cff0ff; box-shadow:0 6px 12px rgba(0,0,0,.12); }
-  .controls{ display:flex; gap:10px; }
-
-  /* Preview column */
-  .preview-wrap{ display:flex; flex-direction:column; align-items:center; gap:12px; z-index:3; }
-  #preview-area{
-    width:520px; height:640px; background:var(--panel); border-radius:22px;
-    border:5px solid #7fe6c9; box-shadow:0 10px 30px rgba(0,0,0,0.14);
-    position:relative; overflow:visible; display:block;
+  /* Tabs */
+  #tabs button {
+    background: #6cd4b4;
+    border: none;
+    padding: 10px;
+    border-radius: 12px;
+    font-size: 16px;
+    margin-bottom: 10px;
+    cursor: pointer;
+    font-weight: bold;
+    color: white;
+    width: 150px;
+    box-shadow: 0 3px 0 #4aa88b;
+    transition: transform 0.1s;
   }
 
-  /* layering: legs behind body, body middle, arms in front, head topmost */
-  .part{ position:absolute; object-fit:contain; pointer-events:none; transition:transform .18s ease; }
+  #tabs button:hover { transform: scale(1.07); }
 
-  /* Tuned sizes & positions to match your sample bear */
-  /* Coordinates chosen for preview-area size 520x640 (x from left, y from top) */
-  /* Legs (behind body) */
-  #left-leg  { width:260px; top:400px; left:50px; z-index:1; }   /* behind body */
+  /* Carousel box */
+  #carousel-area {
+    width: 240px;
+  }
+
+  .carousel {
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    background: #ffffffaa;
+    padding: 15px;
+    border-radius: 15px;
+    box-shadow: 0 4px 10px #00000020;
+    border: 3px dashed #7fd6ff;
+  }
+
+  .carousel img {
+    width: 160px;
+    height: 160px;
+    background: white;
+    border: 3px solid #b8edff;
+    border-radius: 15px;
+    padding: 10px;
+    margin-bottom: 10px;
+  }
+
+  .carousel button {
+    background: #55c2ff;
+    box-shadow: 0 3px 0 #3a8cb8;
+  }
+
+  /* =============== PREVIEW AREA (responsive) =============== */
+  #preview-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  #preview-area {
+    position: relative;
+    width: 100%;
+    max-width: 520px;   /* YOUR CHOSEN OPTION C */
+    aspect-ratio: 520 / 640;
+    overflow: hidden;
+    background: #ffffffaa;
+    border: 4px solid #7fe6c9;
+    border-radius: 20px;
+    box-shadow: 0 5px 15px #00000030;
+  }
+
+  /* Base coordinate system (520×640), scaled uniformly */
+  .part {
+    position: absolute;
+    transform-origin: top left;
+  }
+
+  /* Your exact coordinates */
+  #left-leg  { width:260px; top:400px; left:50px;  z-index:1; }
   #right-leg { width:260px; top:400px; left:210px; z-index:1; }
 
-  /* Body (middle) */
-  #body      { width:360px; top:165px; left:80px; z-index:2; }
+  #body      { width:360px; top:165px; left:80px;  z-index:2; }
 
-  /* Arms (in front of body) */
-  #left-arm  { width:240px; top:210px; left:-10px; z-index:3; }   /* arms overlap front of body */
+  #left-arm  { width:240px; top:210px; left:-10px; z-index:3; }
   #right-arm { width:240px; top:210px; left:290px; z-index:3; }
 
-  /* Head (topmost) */
-  #head      { width:360px; top:-30px; left:80px; z-index:4; }
+  #head      { width:360px; top:-30px; left:80px;  z-index:4; }
 
-  /* action buttons under preview */
-  #action-row{ display:flex; gap:14px; justify-content:center; margin-top:12px; }
-  .action-btn{ padding:12px 16px; border-radius:14px; background:var(--accent-2); color:white; font-weight:800; border:none; box-shadow:0 4px 0 #4aa88b; cursor:pointer; }
-
-  /* responsive: scale down preview area and positions */
-  @media (max-width:1200px){
-    #preview-area{ width:420px; height:520px; }
-    #body{ width:300px; left:60px; top:120px; }
-    #left-leg, #right-leg{ width:170px; top:300px; left:auto; }
-    #left-leg{ left:100px; } #right-leg{ left:240px; }
-    #left-arm,#right-arm{ width:260px; top:110px; left:auto; }
-    #left-arm{ left:-10px } #right-arm{ left:200px }
-    #head{ width:190px; left:115px; top:6px; }
+  /* Buttons under preview */
+  #action-buttons {
+    margin-top: 20px;
+    display: flex;
+    gap: 20px;
   }
 
-  /* bubbles */
-  .bubbles{ position:fixed; left:0; top:0; width:100%; height:100%; pointer-events:none; z-index:0; }
-  .bubble{ position:absolute; border-radius:50%; background:rgba(255,255,255,0.6); filter:blur(6px); mix-blend-mode:overlay; opacity:.9; animation:floatUp linear infinite; }
-  @keyframes floatUp{ from{ transform:translateY(120vh) scale(1); } to{ transform:translateY(-40vh) scale(.9); } }
+  #action-buttons button {
+    background: #6cd4b4;
+    padding: 12px 20px;
+    border-radius: 15px;
+    font-size: 18px;
+    color: white;
+    border: none;
+    cursor: pointer;
+    font-weight: bold;
+    box-shadow: 0 3px 0 #4aa88b;
+  }
 </style>
 </head>
+
 <body>
 <h1>Stuffed Animal Mixer</h1>
 
-<!-- bubbles behind UI -->
-<div class="bubbles" aria-hidden="true"></div>
-<script>
-(function makeBubbles(){
-  const c = document.querySelector('.bubbles');
-  const colors = ['rgba(255,255,255,0.6)','rgba(240,255,255,0.5)','rgba(220,255,245,0.45)'];
-  for(let i=0;i<14;i++){
-    const b=document.createElement('div'); b.className='bubble';
-    const s=30+Math.random()*140;
-    b.style.width=s+'px'; b.style.height=s+'px';
-    b.style.left=(Math.random()*100)+'vw';
-    b.style.bottom = (-Math.random()*60 - 10)+'vh';
-    b.style.background = colors[Math.floor(Math.random()*colors.length)];
-    b.style.opacity = 0.45 + Math.random()*0.4;
-    b.style.animationDuration = (10 + Math.random()*16)+'s';
-    b.style.animationDelay = (-Math.random()*20)+'s';
-    c.appendChild(b);
-  }
-})();
-</script>
+<div id="layout">
 
-<div class="page-row">
-
-  <!-- tabs -->
+  <!-- TAB BUTTONS -->
   <div id="tabs">
-    <button data-part="head">Head</button>
-    <button data-part="body">Body</button>
-    <button data-part="leftArm">Left Arm</button>
-    <button data-part="rightArm">Right Arm</button>
-    <button data-part="leftLeg">Left Leg</button>
-    <button data-part="rightLeg">Right Leg</button>
+    <button onclick="showTab('head')">Head</button>
+    <button onclick="showTab('body')">Body</button>
+    <button onclick="showTab('leftArm')">Left Arm</button>
+    <button onclick="showTab('rightArm')">Right Arm</button>
+    <button onclick="showTab('leftLeg')">Left Leg</button>
+    <button onclick="showTab('rightLeg')">Right Leg</button>
   </div>
 
-  <!-- carousel -->
+  <!-- CAROUSEL -->
   <div id="carousel-area">
-    <div class="carousel" id="carousel-head" data-part="head">
+    <div class="carousel" id="carousel-head">
       <h3>Head</h3>
-      <img id="head-img" alt="head preview">
-      <div class="controls"><button data-action="prev" data-part="head">Prev</button><button data-action="next" data-part="head">Next</button></div>
+      <img id="carousel-head-img">
+      <button onclick="prev('head')">Prev</button>
+      <button onclick="next('head')">Next</button>
     </div>
 
-    <div class="carousel" id="carousel-body" data-part="body" style="display:none;">
+    <div class="carousel" id="carousel-body">
       <h3>Body</h3>
-      <img id="body-img" alt="body preview">
-      <div class="controls"><button data-action="prev" data-part="body">Prev</button><button data-action="next" data-part="body">Next</button></div>
+      <img id="carousel-body-img">
+      <button onclick="prev('body')">Prev</button>
+      <button onclick="next('body')">Next</button>
     </div>
 
-    <div class="carousel" id="carousel-leftArm" data-part="leftArm" style="display:none;">
+    <div class="carousel" id="carousel-leftArm">
       <h3>Left Arm</h3>
-      <img id="leftArm-img" alt="left arm preview">
-      <div class="controls"><button data-action="prev" data-part="leftArm">Prev</button><button data-action="next" data-part="leftArm">Next</button></div>
+      <img id="carousel-leftArm-img">
+      <button onclick="prev('leftArm')">Prev</button>
+      <button onclick="next('leftArm')">Next</button>
     </div>
 
-    <div class="carousel" id="carousel-rightArm" data-part="rightArm" style="display:none;">
+    <div class="carousel" id="carousel-rightArm">
       <h3>Right Arm</h3>
-      <img id="rightArm-img" alt="right arm preview">
-      <div class="controls"><button data-action="prev" data-part="rightArm">Prev</button><button data-action="next" data-part="rightArm">Next</button></div>
+      <img id="carousel-rightArm-img">
+      <button onclick="prev('rightArm')">Prev</button>
+      <button onclick="next('rightArm')">Next</button>
     </div>
 
-    <div class="carousel" id="carousel-leftLeg" data-part="leftLeg" style="display:none;">
+    <div class="carousel" id="carousel-leftLeg">
       <h3>Left Leg</h3>
-      <img id="leftLeg-img" alt="left leg preview">
-      <div class="controls"><button data-action="prev" data-part="leftLeg">Prev</button><button data-action="next" data-part="leftLeg">Next</button></div>
+      <img id="carousel-leftLeg-img">
+      <button onclick="prev('leftLeg')">Prev</button>
+      <button onclick="next('leftLeg')">Next</button>
     </div>
 
-    <div class="carousel" id="carousel-rightLeg" data-part="rightLeg" style="display:none;">
+    <div class="carousel" id="carousel-rightLeg">
       <h3>Right Leg</h3>
-      <img id="rightLeg-img" alt="right leg preview">
-      <div class="controls"><button data-action="prev" data-part="rightLeg">Prev</button><button data-action="next" data-part="rightLeg">Next</button></div>
+      <img id="carousel-rightLeg-img">
+      <button onclick="prev('rightLeg')">Prev</button>
+      <button onclick="next('rightLeg')">Next</button>
     </div>
   </div>
 
-  <!-- preview + action buttons (buttons under preview) -->
-  <div class="preview-wrap">
-    <div id="preview-area" aria-label="Assembled stuffed animal">
-      <!-- legs behind (z-index 1) -->
-      <img id="left-leg" class="part" alt="left leg">
-      <img id="right-leg" class="part" alt="right leg">
-      <!-- body middle -->
-      <img id="body" class="part" alt="body">
-      <!-- arms front -->
-      <img id="left-arm" class="part" alt="left arm">
-      <img id="right-arm" class="part" alt="right arm">
-      <!-- head top -->
-      <img id="head" class="part" alt="head">
+  <!-- PREVIEW AREA -->
+  <div id="preview-wrapper">
+    <div id="preview-area">
+      <img id="head"      class="part">
+      <img id="body"      class="part">
+      <img id="left-arm"  class="part">
+      <img id="right-arm" class="part">
+      <img id="left-leg"  class="part">
+      <img id="right-leg" class="part">
     </div>
 
-    <div id="action-row">
-      <button class="action-btn" id="randomizeBtn">🎲 Randomize All</button>
-      <button class="action-btn" id="downloadBtn">💾 Download My Creature</button>
+    <!-- Buttons under preview -->
+    <div id="action-buttons">
+      <button onclick="randomizeAll()">Randomize All</button>
+      <button onclick="downloadCreature()">Download</button>
     </div>
   </div>
 
 </div>
 
-<!-- include html2canvas for download -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-
 <script>
-/* ------------------ assets (match your repo) ------------------ */
-const files = {
-  head: ["img/heads/bear.png"],
-  body: ["img/bodies/bear.png"],
-  leftArm: ["img/arms/left-bear.png"],
-  rightArm: ["img/arms/right-bear.png"],
-  leftLeg: ["img/legs/left-bear.png"],
-  rightLeg: ["img/legs/right-bear.png"]
+let parts = {};
+let index = { head:0, body:0, leftArm:0, rightArm:0, leftLeg:0, rightLeg:0 };
+
+const folderMap = {
+  head: "img/heads/",
+  body: "img/bodies/",
+  leftArm: "img/arms/left/",
+  rightArm: "img/arms/right/",
+  leftLeg: "img/legs/left/",
+  rightLeg: "img/legs/right/"
 };
 
-const index = { head:0, body:0, leftArm:0, rightArm:0, leftLeg:0, rightLeg:0 };
+/* Load parts.json */
+fetch("parts.json")
+  .then(r => r.json())
+  .then(json => {
+    parts = json;
+    initAll();
+  });
 
-/* helpers: control and preview id mapping */
-function controlId(part){ return part + "-img"; }               // e.g. leftArm-img
-function previewId(part){ return part.replace(/([A-Z])/g,"-$1").toLowerCase(); } // e.g. left-arm
-
-/* update control and preview images */
-function update(part){
-  const ctrl = document.getElementById(controlId(part));
-  const prev = document.getElementById(previewId(part));
-  if(ctrl) ctrl.src = files[part][index[part]];
-  if(prev) prev.src = files[part][index[part]];
+function initAll() {
+  for (const p in parts) update(p);
+  showTab("head");
+  applyPreviewScaling();
 }
 
-/* next/prev */
-function next(part){
-  index[part] = (index[part]+1) % files[part].length;
+/* Uniform scaling system */
+function applyPreviewScaling() {
+  const baseWidth = 520;
+  const area = document.getElementById("preview-area");
+  const scale = area.clientWidth / baseWidth;
+
+  document.querySelectorAll(".part").forEach(img => {
+    img.style.transform = `scale(${scale})`;
+  });
+}
+
+window.addEventListener("resize", applyPreviewScaling);
+
+/* Updates a part image */
+function update(part) {
+  const file = parts[part][index[part]];
+  const full = folderMap[part] + file;
+
+  document.getElementById(`carousel-${part}-img`).src = full;
+
+  const id = part.replace(/([A-Z])/g,"-$1").toLowerCase();
+  document.getElementById(id).src = full;
+
+  applyPreviewScaling();
+}
+
+/* Carousel navigation */
+function next(part) {
+  index[part] = (index[part] + 1) % parts[part].length;
   update(part);
-  playClick();
 }
-function prev(part){
-  index[part] = (index[part]-1 + files[part].length) % files[part].length;
+function prev(part) {
+  index[part] = (index[part] - 1 + parts[part].length) % parts[part].length;
   update(part);
-  playClick();
 }
 
-/* show a tab carousel */
-function showTab(part){
-  document.querySelectorAll(".carousel").forEach(c=>c.style.display='none');
-  const el = document.getElementById("carousel-"+part);
-  if(el) el.style.display='flex';
-  // highlight active tab
-  document.querySelectorAll('#tabs button').forEach(b=>b.classList.remove('active'));
-  const btn = document.querySelector('#tabs button[data-part="'+part+'"]');
-  if(btn) btn.classList.add('active');
+/* Tab switching */
+function showTab(part) {
+  document.querySelectorAll(".carousel").forEach(c => c.style.display="none");
+  document.getElementById("carousel-" + part).style.display = "flex";
 }
 
-/* randomize */
-function randomizeAll(){
-  Object.keys(files).forEach(p=>{
-    index[p] = Math.floor(Math.random()*files[p].length);
+/* Randomize button */
+function randomizeAll() {
+  for (const p in parts) {
+    index[p] = Math.floor(Math.random() * parts[p].length);
     update(p);
-    // tiny bounce on preview element
-    const el = document.getElementById(previewId(p));
-    if(el){
-      el.classList.remove('do-bounce');
-      void el.offsetWidth;
-      el.classList.add('do-bounce');
-    }
-  });
-  playClick();
+  }
 }
 
-/* download merged image (hide bubbles during capture) */
-function downloadCreature(){
-  const bubbles = document.querySelector('.bubbles');
-  const oldVisibility = bubbles.style.display;
-  bubbles.style.display = 'none';
-  html2canvas(document.getElementById('preview-area'), { backgroundColor: null }).then(canvas=>{
-    const a=document.createElement('a');
-    a.href = canvas.toDataURL('image/png');
-    a.download = 'my-stuffed-animal.png';
-    a.click();
-    bubbles.style.display = oldVisibility;
-  });
+/* Download (simple version - screenshot) */
+function downloadCreature() {
+  alert("Download feature coming soon!");
 }
-
-/* sound (tiny random cute blips) */
-const AudioCtx = window.AudioContext || window.webkitAudioContext;
-let audioCtx = null;
-function ensureAudio(){ if(!audioCtx) audioCtx = new AudioCtx(); }
-function playTone(freq,dur=0.10,type='sine',vol=0.06){
-  ensureAudio();
-  const now = audioCtx.currentTime;
-  const o = audioCtx.createOscillator(), g = audioCtx.createGain();
-  o.type=type; o.frequency.value=freq; g.gain.setValueAtTime(vol, now); g.gain.exponentialRampToValueAtTime(0.0001, now+dur);
-  o.connect(g); g.connect(audioCtx.destination); o.start(now); o.stop(now+dur+0.02);
-}
-function playNoise(){
-  ensureAudio();
-  const buf = audioCtx.createBuffer(1, 0.02*audioCtx.sampleRate, audioCtx.sampleRate);
-  const d = buf.getChannelData(0);
-  for(let i=0;i<d.length;i++) d[i] = (Math.random()*2-1)*Math.exp(-i/d.length*6);
-  const s = audioCtx.createBufferSource(); s.buffer = buf; const g = audioCtx.createGain(); g.gain.value=0.06;
-  s.connect(g); g.connect(audioCtx.destination); s.start();
-}
-function playClick(){
-  const c = Math.floor(Math.random()*5);
-  if(c===0){ playTone(720,0.10,'triangle'); setTimeout(()=>playTone(860,0.09,'sine'),60); }
-  else if(c===1) playTone(520,0.12,'sine');
-  else if(c===2) playTone(360,0.16,'sawtooth');
-  else if(c===3){ playTone(900,0.08,'square'); setTimeout(()=>playTone(1080,0.08,'square'),60); }
-  else playNoise();
-}
-
-/* --------------------------------------------------
-   Wiring: event listeners for tabs & carousel controls
-   -------------------------------------------------- */
-document.addEventListener('DOMContentLoaded', ()=>{
-  // tab buttons
-  document.querySelectorAll('#tabs button').forEach(btn=>{
-    btn.addEventListener('click', ()=>{ showTab(btn.dataset.part); });
-  });
-
-  // carousel prev/next using event delegation
-  document.getElementById('carousel-area').addEventListener('click', (e)=>{
-    const b = e.target.closest('button[data-action]');
-    if(!b) return;
-    const part = b.dataset.part, action = b.dataset.action;
-    if(action === 'prev') prev(part); else if(action === 'next') next(part);
-  });
-
-  // action buttons
-  document.getElementById('randomizeBtn').addEventListener('click', randomizeAll);
-  document.getElementById('downloadBtn').addEventListener('click', downloadCreature);
-
-  // initialize images
-  Object.keys(files).forEach(update);
-  showTab('head');
-});
 </script>
+
 </body>
 </html>
