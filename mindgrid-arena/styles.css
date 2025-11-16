@@ -522,13 +522,20 @@ button:disabled {
 }
 
 @media (max-width: 480px) {
-  .top-bar {
+  .message-controls-row {
     flex-direction: column;
     align-items: flex-start;
     gap: 6px;
   }
 
+  .controls-row {
+    width: 100%;
+    justify-content: flex-start;
+    flex-wrap: wrap;
+  }
+
   .grid {
     grid-auto-rows: 46px;
   }
+}
 }
