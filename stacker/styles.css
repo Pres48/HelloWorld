@@ -1,0 +1,243 @@
+body {
+  margin: 0;
+  padding: 0;
+  font-family: Arial, sans-serif;
+  text-align: center;
+  display: flex;
+  justify-content: center; /* Center content horizontally */
+  align-items: center;
+  flex-direction: column;
+  height: 100vh;
+  background-color: #87ceeb;
+}
+
+h1 {
+  margin: 0 20px;
+  font-size: 2em;
+  width: 100%;
+  text-align: center;
+}
+
+p {
+  margin-top: 20px;
+  margin-bottom: 40px;
+  width: 100%;
+  text-align: center;
+  font-size: 1.1em;
+  line-height: 1.4;
+}
+
+/* Game Container */
+#game-container {
+  width: 90vw;
+  height: 60vh;
+  max-width: 800px;
+  max-height: 600px;
+  background-color: #f0f0f0;
+}
+
+/* Reset Button Styling */
+.reset-button {
+  color: white;
+  padding: 12px 24px;
+  border: 2px solid #ccc;
+  background-color: #ffb200;
+  cursor: pointer;
+  margin: 10px;
+  border-radius: 5px;
+  font-size: 18px;
+}
+
+.reset-button:hover {
+  background-color: #ff9f00;
+}
+
+/* Reset button container: Ensures the button is centered */
+#reset-button-container {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+}
+
+/* Mobile Responsiveness */
+@media (max-width: 600px) {
+  h1 {
+    width: 95%;
+    font-size: 1.5em;  /* Smaller title on smaller screens */
+  }
+
+  p {
+    width: 95%;
+    font-size: 1em;  /* Adjust text size for smaller screens */
+    margin: 10px;
+  }
+
+  #game-container {
+    width: 95vw;
+    height: 60vh;
+  }
+
+  .reset-button {
+    font-size: 16px;
+    padding: 10px 20px;
+  }
+}
+
+@media (max-width: 400px) {
+  h1 {
+    width: 95%;
+    font-size: 1.3em;
+  }
+
+  p {
+    width: 95%;
+    font-size: 0.9em;
+  }
+
+  #game-container {
+    width: 95vw;
+    height: 60vh;
+  }
+
+  .reset-button {
+    font-size: 14px;
+    padding: 8px 16px;
+  }
+}
+
+/* Scoreboard Styles */
+#scoreboard {
+  width: 100%;
+  max-width: 800px;
+  margin: 10px auto 5px auto;
+  padding: 10px;
+  background: rgba(0, 0, 0, 0.65);
+  color: #fff;
+  border-radius: 8px;
+  display: flex;
+  justify-content: space-around;
+  font-size: 20px;
+}
+
+#scoreboard div {
+  font-weight: bold;
+}
+
+/* High score flash animation */
+#high-score.flash {
+  animation: flash 0.5s ease-in-out 3;
+}
+
+@keyframes flash {
+  0% { color: #ffff66; }
+  50% { color: #ffcc00; }
+  100% { color: #ffff66; }
+}
+
+/* New Record Badge */
+#new-record-badge {
+  margin-top: 5px;
+  font-size: 24px;
+  font-weight: 900;
+  color: #ffeb3b;
+  text-transform: uppercase;
+  text-shadow: 0 0 8px rgba(0, 0, 0, 0.6);
+  opacity: 0;
+  transform: scale(0.8);
+  transition: all 0.25s ease-out;
+}
+
+#new-record-badge.visible {
+  opacity: 1;
+  transform: scale(1);
+}
+
+#new-record-badge.hidden {
+  opacity: 0;
+}
+
+/* Leaderboard */
+#leaderboard-container {
+  max-width: 800px;
+  width: 90vw;
+  margin: 10px auto 0 auto;
+  padding: 10px;
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 8px;
+  text-align: left;
+}
+
+#leaderboard-container h2 {
+  margin: 0 0 6px 0;
+  font-size: 18px;
+}
+
+#leaderboard-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  font-size: 16px;
+}
+
+#leaderboard-list li {
+  padding: 2px 0;
+}
+
+/* Initials Modal */
+#initials-modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+#initials-modal.hidden {
+  display: none;
+}
+
+#initials-modal .modal-content {
+  background: #ffffff;
+  padding: 20px 24px;
+  border-radius: 10px;
+  max-width: 320px;
+  width: 90%;
+  text-align: center;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+#initials-input {
+  font-size: 20px;
+  text-transform: uppercase;
+  width: 80px;
+  text-align: center;
+  margin: 10px 0;
+  padding: 4px;
+}
+
+#initials-submit {
+  padding: 8px 16px;
+  font-size: 16px;
+  border: none;
+  border-radius: 6px;
+  background: #ffb200;
+  color: #fff;
+  cursor: pointer;
+}
+
+#initials-submit:hover {
+  background: #ff9f00;
+}
+
+/* Mobile tweaks for scoreboard + leaderboard */
+@media (max-width: 600px) {
+  #scoreboard {
+    font-size: 16px;
+  }
+
+  #leaderboard-container {
+    font-size: 14px;
+  }
+}
