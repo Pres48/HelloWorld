@@ -65,22 +65,7 @@
       </section>
 
       <aside class="side-panel">
-        <section class="panel-block">
-          <h2>How to Play</h2>
-          <p>
-            Each turn you have <strong>limited time</strong> to pick a tile.
-            Tiles give points, multipliers, and combos. As your
-            <strong>level increases</strong>, time shrinks and new tile types
-            appear.
-          </p>
-          <ul class="bullet-list">
-            <li><strong>Blue</strong>: Number tiles (base points)</li>
-            <li><strong>Yellow</strong>: Bonus tiles (boost multiplier)</li>
-            <li><strong>Green</strong>: Chain tiles (more value in sequence)</li>
-            <li><strong>Red</strong>: Risk tiles (high reward, possible penalty)</li>
-          </ul>
-        </section>
-
+        <!-- HOW TO PLAY -->
         <section class="panel-block">
           <h2>How to Play</h2>
           <p>
@@ -122,8 +107,33 @@
             <strong>more turns</strong>, and <strong>trickier boards</strong>.
           </p>
         </section>
-
+      
+        <!-- HIGH SCORE (LOCAL BEST) -->
+        <section class="panel-block">
+          <h2>High Score</h2>
+          <div id="highScoreBox" class="highscore-box">
+            <div class="highscore-row">
+              <span class="label">Best Score:</span>
+              <span class="value" id="bestScoreDisplay">–</span>
+            </div>
+            <div class="highscore-row">
+              <span class="label">Best Level:</span>
+              <span class="value" id="bestLevelDisplay">–</span>
+            </div>
+            <button id="saveScoreButton" class="secondary" disabled>Save Score</button>
+            <p id="saveStatus" class="save-status"></p>
+          </div>
+        </section>
+      
+        <!-- GLOBAL LEADERBOARD (SUPABASE) -->
+        <section class="panel-block">
+          <h2>Leaderboard</h2>
+          <div id="leaderboardList" class="leaderboard-list">
+            <p class="soft-text">Loading…</p>
+          </div>
+        </section>
       </aside>
+
     </main>
   </div>
 
