@@ -1,6 +1,6 @@
 // main.js
 import { generateGrid, getDifficultyForLevel, resolveTileSelection } from "./game.js";
-import { saveScoreToSupabase } from "./supabaseClient.js";
+import { saveScoreToSupabase, fetchTopScores } from "./supabaseClient.js";
 
 const gridContainer = document.getElementById("gridContainer");
 const levelDisplay = document.getElementById("levelDisplay");
@@ -17,6 +17,7 @@ const bestLevelDisplay = document.getElementById("bestLevelDisplay");
 const saveScoreButton = document.getElementById("saveScoreButton");
 const saveStatus = document.getElementById("saveStatus");
 const lastMoveDisplay = document.getElementById("lastMoveDisplay");
+const leaderboardList = document.getElementById("leaderboardList");
 
 let gameState = null;
 let timerInterval = null;
@@ -24,6 +25,20 @@ let turnDeadline = null;
 let selectedThisTurn = false;
 let bestScore = 0;
 let bestLevel = 0;
+
+function escapeHtml(str) {
+  if (typeof str !== "string") return "";
+  return str.replace(/[&<>"']/g, (c) => {
+    switch (c) {
+      case "&": return "&amp;";
+      case "<": return "&lt;";
+      case ">": return "&gt;";
+      case '"': return "&quot;";
+      case "'": return "&#39;";
+      default: return c;
+    }
+  });
+}
 
 function resetTimer() {
   if (timerInterval) {
@@ -291,6 +306,47 @@ function restartGame() {
   startGame();
 }
 
+async function loadLeaderboard() {
+  if (!leaderboardList) return;
+
+  leaderboardList.innerHTML = `<p class="soft-text">Loading…</p>`;
+
+  try {
+    const rows = await fetchTopScores(10);
+
+    if (!rows || rows.length === 0) {
+      leaderboardList.innerHTML = `<p class="soft-text">No scores yet. Be the first!</p>`;
+      return;
+    }
+
+    leaderboardList.innerHTML = "";
+    const fragment = document.createDocumentFragment();
+
+    rows.forEach((row, index) => {
+      const div = document.createElement("div");
+      div.className = "leaderboard-row";
+
+      const safeName = escapeHtml(row.name || "Guest");
+      const score = row.score ?? 0;
+      const level = row.level ?? 1;
+
+      div.innerHTML = `
+        <span class="rank">#${index + 1}</span>
+        <span class="entry-name">${safeName}</span>
+        <span class="entry-score">${score.toLocaleString()}</span>
+        <span class="entry-level">Lv ${level}</span>
+      `;
+
+      fragment.appendChild(div);
+    });
+
+    leaderboardList.appendChild(fragment);
+  } catch (err) {
+    console.error("Leaderboard load error:", err);
+    leaderboardList.innerHTML = `<p class="soft-text">Error loading leaderboard.</p>`;
+  }
+}
+
 /**
  * Save score to Supabase
  */
@@ -304,12 +360,16 @@ async function handleSaveScore() {
     await saveScoreToSupabase(name, gameState.score, gameState.level);
     saveStatus.textContent = "Score saved!";
     saveStatus.style.color = "#22c55e";
+
+    // Refresh leaderboard
+    await loadLeaderboard();
   } catch (err) {
     saveStatus.textContent = "Error saving score. Check console.";
     saveStatus.style.color = "#f97373";
     saveScoreButton.disabled = false;
   }
 }
+
 
 /**
  * Wire up top-level events.
@@ -324,6 +384,10 @@ function init() {
   bestLevelDisplay.textContent = "–";
   restartButton.disabled = true;
   saveScoreButton.disabled = true;
+
+  // Load leaderboard on page load
+  loadLeaderboard();
 }
+
 
 init();
