@@ -1,1 +1,54 @@
-code
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Preston's Shape Stacker Game</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="icon" href="favicon.ico">
+</head>
+<body>
+  <h1>Preston's Shape Stacker Game</h1>
+
+  <p><strong>Objective:</strong><br>
+    Your goal is to place as many shapes inside the box as possible before time runs out. The timer starts with your first click. After the timer expires, shapes may continue to move, but your final count will be locked in 15 seconds.<br><br>
+    <strong>Place shapes quickly and strategically to maximize your score!</strong>
+  </p>
+
+  <!-- Scoreboard -->
+  <div id="scoreboard">
+    <div id="current-score">Score: 0</div>
+    <div id="high-score">High Score: 0</div>
+  </div>
+
+  <!-- New Record Badge -->
+  <div id="new-record-badge" class="hidden">NEW RECORD!</div>
+
+  <!-- Game Container -->
+  <div id="game-container"></div>
+
+  <!-- Reset Button -->
+  <div id="reset-button-container">
+    <button id="reset-button" class="reset-button">Reset Game</button>
+  </div>
+
+  <!-- Leaderboard -->
+  <div id="leaderboard-container">
+    <h2>Leaderboard</h2>
+    <ul id="leaderboard-list"></ul>
+  </div>
+
+  <!-- Initials Modal -->
+  <div id="initials-modal" class="hidden">
+    <div class="modal-content">
+      <h2>New Record!</h2>
+      <p>Enter your initials:</p>
+      <input id="initials-input" type="text" maxlength="3" />
+      <button id="initials-submit">Save Score</button>
+    </div>
+  </div>
+
+  <script src="./libs/phaser.min.js"></script>
+  <script src="main.js"></script>
+</body>
+</html>
