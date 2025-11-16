@@ -484,7 +484,7 @@ function restartGame() {
 }
 
 function init() {
-  // Button handlers
+  // Main buttons
   startButton.onclick = startGame;
   restartButton.onclick = restartGame;
   saveScoreButton.onclick = handleSaveScore;
@@ -500,10 +500,12 @@ function init() {
   function togglePopover(popover) {
     if (!popover) return;
     const isVisible = popover.classList.contains("visible");
+
     // close all first
-    [howToPlayInfoPopover, levelGoalsInfoPopover, leaderboardInfoPopover].forEach(p => {
+    [howToPlayInfoPopover, levelGoalsInfoPopover, leaderboardInfoPopover].forEach((p) => {
       if (p) p.classList.remove("visible");
     });
+
     if (!isVisible) {
       popover.classList.add("visible");
     }
@@ -532,19 +534,18 @@ function init() {
 
   // Click anywhere else closes all
   document.addEventListener("click", () => {
-    [howToPlayInfoPopover, levelGoalsInfoPopover, leaderboardInfoPopover].forEach(p => {
+    [howToPlayInfoPopover, levelGoalsInfoPopover, leaderboardInfoPopover].forEach((p) => {
       if (p) p.classList.remove("visible");
     });
   });
 
-  // Prevent clicks inside popovers from closing them immediately
-  [howToPlayInfoPopover, levelGoalsInfoPopover, leaderboardInfoPopover].forEach(p => {
+  // Prevent clicks inside popovers from closing them
+  [howToPlayInfoPopover, levelGoalsInfoPopover, leaderboardInfoPopover].forEach((p) => {
     if (!p) return;
     p.addEventListener("click", (e) => {
       e.stopPropagation();
     });
   });
 }
-
 
 init();
