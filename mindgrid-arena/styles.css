@@ -97,6 +97,14 @@ body {
   font-size: 0.8rem;
 }
 
+.level-goals {
+  min-height: 18px;
+  font-size: 0.75rem;
+  color: var(--text-soft);
+  margin-bottom: 4px;
+}
+
+
 /* Layout */
 
 .game-layout {
