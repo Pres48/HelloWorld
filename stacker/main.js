@@ -47,8 +47,14 @@ let leaderboard = [];
 
 const HIGH_SCORE_KEY = "ShapeStackerHighScore";
 
-// TODO: Replace this with your real backend URL
-const API_BASE_URL = "https://your-score-api.example.com";
+/**
+ * Supabase config:
+ * Values from Project Settings -> API
+ */
+const SUPABASE_URL = "https://ivwjksiaoypeuanvlzar.supabase.co";
+const SUPABASE_ANON_KEY =
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml2d2prc2lhb3lwZXVhbnZsemFyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjMyNDgzNjEsImV4cCI6MjA3ODgyNDM2MX0.kRh2i4O2cBF5-o2RGXStK1IFmN_RPTJFrpDdRdQR-nQ";
+const SCORES_TABLE = "scores";
 
 // Initialize score system (local + cloud)
 function initScoreSystem() {
@@ -377,8 +383,23 @@ function handleInitialsSubmit() {
 }
 
 async function fetchLeaderboard() {
+  if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
+    console.warn("Supabase config not set");
+    return;
+  }
+
   try {
-    const res = await fetch(`${API_BASE_URL}/scores/top`);
+    const url =
+      `${SUPABASE_URL}/rest/v1/${SCORES_TABLE}` +
+      `?select=initials,score&order=score.desc&limit=10`;
+
+    const res = await fetch(url, {
+      headers: {
+        apikey: SUPABASE_ANON_KEY,
+        Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+      },
+    });
+
     if (!res.ok) throw new Error("Network error fetching leaderboard");
     const data = await res.json();
     leaderboard = Array.isArray(data) ? data : [];
@@ -389,13 +410,27 @@ async function fetchLeaderboard() {
 }
 
 async function submitScoreToCloud(initials, score) {
+  if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
+    console.warn("Supabase config not set");
+    return;
+  }
+
   try {
-    const res = await fetch(`${API_BASE_URL}/scores`, {
+    const url = `${SUPABASE_URL}/rest/v1/${SCORES_TABLE}`;
+
+    const res = await fetch(url, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        apikey: SUPABASE_ANON_KEY,
+        Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+        "Content-Type": "application/json",
+        Prefer: "return=representation",
+      },
       body: JSON.stringify({ initials, score }),
     });
+
     if (!res.ok) throw new Error("Failed to submit score");
+
     // Refresh leaderboard after successful submit
     await fetchLeaderboard();
   } catch (err) {
