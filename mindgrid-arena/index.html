@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MindGrid Arena</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="app">
+    <header class="top-bar">
+      <div class="brand">
+        <span class="logo-dot"></span>
+        <span class="brand-title">MindGrid Arena</span>
+      </div>
+      <div class="player-info">
+        <label>
+          Name:
+          <input id="playerNameInput" type="text" maxlength="12" placeholder="Guest" />
+        </label>
+      </div>
+    </header>
+
+    <main class="game-layout">
+      <section class="game-panel">
+        <div class="stats-row">
+          <div class="stat">
+            <span class="label">Level</span>
+            <span class="value" id="levelDisplay">1</span>
+          </div>
+          <div class="stat">
+            <span class="label">Turn</span>
+            <span class="value" id="turnDisplay">0 / 0</span>
+          </div>
+          <div class="stat">
+            <span class="label">Score</span>
+            <span class="value" id="scoreDisplay">0</span>
+          </div>
+          <div class="stat">
+            <span class="label">Multiplier</span>
+            <span class="value" id="multiplierDisplay">x1.0</span>
+          </div>
+        </div>
+
+        <div class="timer-bar">
+          <div class="timer-fill" id="timerFill"></div>
+        </div>
+
+        <div class="message" id="messageArea">
+          Click "Start Game" to begin.
+        </div>
+
+        <div class="grid" id="gridContainer">
+          <!-- tiles injected by JS -->
+        </div>
+
+        <div class="controls-row">
+          <button id="startButton">Start Game</button>
+          <button id="restartButton" class="secondary" disabled>Restart</button>
+        </div>
+      </section>
+
+      <aside class="side-panel">
+        <section class="panel-block">
+          <h2>How to Play</h2>
+          <p>
+            Each turn you have <strong>limited time</strong> to pick a tile.
+            Tiles give points, multipliers, and combos. As your
+            <strong>level increases</strong>, time shrinks and new tile types
+            appear.
+          </p>
+          <ul class="bullet-list">
+            <li><strong>Blue</strong>: Number tiles (base points)</li>
+            <li><strong>Yellow</strong>: Bonus tiles (boost multiplier)</li>
+            <li><strong>Green</strong>: Chain tiles (more value in sequence)</li>
+            <li><strong>Red</strong>: Risk tiles (high reward, possible penalty)</li>
+          </ul>
+        </section>
+
+        <section class="panel-block">
+          <h2>High Score</h2>
+          <div id="highScoreBox" class="highscore-box">
+            <div class="highscore-row">
+              <span class="label">Best Score:</span>
+              <span class="value" id="bestScoreDisplay">–</span>
+            </div>
+            <div class="highscore-row">
+              <span class="label">Best Level:</span>
+              <span class="value" id="bestLevelDisplay">–</span>
+            </div>
+            <button id="saveScoreButton" class="secondary" disabled>Save Score</button>
+            <p id="saveStatus" class="save-status"></p>
+          </div>
+        </section>
+      </aside>
+    </main>
+  </div>
+
+  <script type="module" src="main.js"></script>
+</body>
+</html>
