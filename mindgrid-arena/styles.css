@@ -123,6 +123,16 @@ body {
   line-height: 1.25;
 }
 
+.player-info-helper.warning {
+  color: var(--warning);
+  opacity: 1;
+}
+
+.player-info input.name-warning {
+  border-color: var(--warning);
+  box-shadow: 0 0 0 1px rgba(250, 204, 21, 0.7);
+}
+
 
 /* Level Goals */
 
