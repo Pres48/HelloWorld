@@ -18,9 +18,9 @@ const saveScoreButton = document.getElementById("saveScoreButton");
 const saveStatus = document.getElementById("saveStatus");
 const lastMoveDisplay = document.getElementById("lastMoveDisplay");
 const leaderboardList = document.getElementById("leaderboardList");
-const MIN_SUBMIT_SCORE = 200; // minimum score required to submit to global leaderboard
 const levelGoals = document.getElementById("levelGoals");
 
+const MIN_SUBMIT_SCORE = 200; // minimum score required to submit to global leaderboard
 
 let gameState = null;
 let timerInterval = null;
@@ -29,20 +29,7 @@ let selectedThisTurn = false;
 let bestScore = 0;
 let bestLevel = 0;
 
-function getRequiredGainForLevel(level) {
-  // required points "earned" in that level (not total)
-  // tweak numbers as you test
-  const base = 80;             // level 1
-  const perLevel = 30;         // extra requirement per level
-  return base + (level - 1) * perLevel;
-}
-
-function getAllowedMissesForLevel(level) {
-  // fewer misses allowed as level climbs
-  if (level <= 3) return 3;
-  if (level <= 6) return 2;
-  return 1;
-}
+// ---------- Utility ----------
 
 function escapeHtml(str) {
   if (typeof str !== "string") return "";
@@ -58,6 +45,19 @@ function escapeHtml(str) {
   });
 }
 
+// Required performance per level
+function getRequiredGainForLevel(level) {
+  const base = 80;   // level 1 requirement
+  const perLevel = 30;
+  return base + (level - 1) * perLevel;
+}
+
+function getAllowedMissesForLevel(level) {
+  if (level <= 3) return 3;
+  if (level <= 6) return 2;
+  return 1;
+}
+
 function resetTimer() {
   if (timerInterval) {
     clearInterval(timerInterval);
@@ -67,9 +67,8 @@ function resetTimer() {
   turnDeadline = null;
 }
 
-/**
- * Initialize a new run.
- */
+// ---------- Core Game ----------
+
 function startGame() {
   const level = 1;
 
@@ -77,9 +76,9 @@ function startGame() {
     level,
     turnIndex: 0,
     turns: getDifficultyForLevel(level).turns,
-    score: 0,                  // new run
-    scoreAtLevelStart: 0,      // start of level 1
-    missedTurns: 0,            // per-level misses
+    score: 0,                 // new run
+    scoreAtLevelStart: 0,     // baseline for this level
+    missedTurns: 0,
     multiplier: 1,
     chainCount: 0,
     lastTileDelta: 0,
@@ -91,7 +90,6 @@ function startGame() {
   updateUIFromState();
   updateLevelGoals();
   renderGrid();
-
   messageArea.textContent = "Pick a tile before the time runs out!";
 
   startButton.disabled = true;
@@ -102,11 +100,37 @@ function startGame() {
   nextTurn();
 }
 
+function startLevel(level) {
+  const prevScore = gameState ? gameState.score : 0;
 
+  gameState = {
+    level,
+    turnIndex: 0,
+    turns: getDifficultyForLevel(level).turns,
+    score: prevScore,             // cumulative
+    scoreAtLevelStart: prevScore, // baseline for this level
+    missedTurns: 0,
+    multiplier: 1,
+    chainCount: 0,
+    lastTileDelta: 0,
+    grid: generateGrid(level),
+    timePerTurnMs: getDifficultyForLevel(level).timePerTurnMs,
+    locked: false,
+  };
 
-/**
- * Starts timer and waits for a tile click. If none, auto-advance.
- */
+  updateUIFromState();
+  updateLevelGoals();
+  renderGrid();
+  messageArea.textContent = `Level ${level}: Faster & trickier tiles.`;
+
+  startButton.disabled = true;
+  restartButton.disabled = false;
+  saveScoreButton.disabled = true;
+  saveStatus.textContent = "";
+
+  nextTurn();
+}
+
 function nextTurn() {
   if (!gameState) return;
 
@@ -116,7 +140,6 @@ function nextTurn() {
   }
 
   selectedThisTurn = false;
-  // enable tiles
   setTilesDisabled(false);
   timerFill.style.transition = "none";
   timerFill.style.width = "100%";
@@ -125,7 +148,6 @@ function nextTurn() {
   const duration = gameState.timePerTurnMs;
   turnDeadline = now + duration;
 
-  // Timer animation
   timerInterval = setInterval(() => {
     const nowInner = performance.now();
     const remaining = Math.max(0, turnDeadline - nowInner);
@@ -161,7 +183,6 @@ function handleMissedTurn() {
   }, 400);
 }
 
-
 function setTilesDisabled(disabled) {
   const tileEls = gridContainer.querySelectorAll(".tile");
   tileEls.forEach((el) => {
@@ -170,9 +191,6 @@ function setTilesDisabled(disabled) {
   });
 }
 
-/**
- * Create DOM for current grid.
- */
 function renderGrid() {
   gridContainer.innerHTML = "";
   if (!gameState) return;
@@ -209,16 +227,13 @@ function renderGrid() {
       tileEl.appendChild(label);
       tileEl.appendChild(valueEl);
 
-      tileEl.addEventListener("click", () => onTileClick(tile));
+      tileEl.onclick = () => onTileClick(tile);
 
       gridContainer.appendChild(tileEl);
     });
   });
 }
 
-/**
- * Handle tile click -> update state, go to next turn.
- */
 function onTileClick(tile) {
   if (!gameState || gameState.locked) return;
   if (selectedThisTurn) return;
@@ -226,7 +241,6 @@ function onTileClick(tile) {
   selectedThisTurn = true;
   setTilesDisabled(true);
 
-  // highlight selected
   const el = gridContainer.querySelector(`[data-tile-id="${tile.id}"]`);
   if (el) el.classList.add("selected");
 
@@ -240,11 +254,12 @@ function onTileClick(tile) {
 
   updateUIFromState();
 
-  // Short delay for feedback, then next turn
   setTimeout(() => {
     nextTurn();
   }, 300);
 }
+
+// ---------- UI Updates ----------
 
 function updateUIFromState() {
   if (!gameState) return;
@@ -254,18 +269,26 @@ function updateUIFromState() {
   multiplierDisplay.textContent = `x${gameState.multiplier.toFixed(2)}`;
   updateTurnDisplay();
 
-  // Last move display
   const delta = gameState.lastTileDelta ?? 0;
   let text = delta === 0 ? "0" : delta > 0 ? `+${delta}` : `${delta}`;
   lastMoveDisplay.textContent = text;
 
   if (delta > 0) {
-    lastMoveDisplay.style.color = "#22c55e"; // green
+    lastMoveDisplay.style.color = "#22c55e";
   } else if (delta < 0) {
-    lastMoveDisplay.style.color = "#f97373"; // red
+    lastMoveDisplay.style.color = "#f97373";
   } else {
-    lastMoveDisplay.style.color = "#9ca3af"; // neutral
+    lastMoveDisplay.style.color = "#9ca3af";
   }
+}
+
+function updateTurnDisplay() {
+  if (!gameState) {
+    turnDisplay.textContent = "0 / 0";
+    return;
+  }
+  const currentTurn = Math.min(gameState.turnIndex + 1, gameState.turns);
+  turnDisplay.textContent = `${currentTurn} / ${gameState.turns}`;
 }
 
 function updateLevelGoals() {
@@ -281,23 +304,8 @@ function updateLevelGoals() {
   levelGoals.textContent = `Level target: +${target.toLocaleString()} pts, Max misses: ${maxMiss}`;
 }
 
+// ---------- End of Round & Progression ----------
 
-function updateTurnDisplay() {
-  if (!gameState) {
-    turnDisplay.textContent = "0 / 0";
-    return;
-  }
-
-  // turnIndex is "turns completed" (0-based).
-  // For display, show current turn as (turnIndex + 1),
-  // but never higher than total turns.
-  const currentTurn = Math.min(gameState.turnIndex + 1, gameState.turns);
-  turnDisplay.textContent = `${currentTurn} / ${gameState.turns}`;
-}
-
-/**
- * Round finished. Determine next level / best scores.
- */
 function endRound() {
   resetTimer();
   setTilesDisabled(true);
@@ -314,7 +322,7 @@ function endRound() {
   const passedScoreGate = levelGain >= requiredGain;
   const passedMissGate = missed <= allowedMisses;
 
-  // Session best tracking based on cumulative score
+  // Track session best (cumulative score)
   if (finalScore > bestScore) {
     bestScore = finalScore;
     bestLevel = level;
@@ -322,7 +330,7 @@ function endRound() {
     bestLevelDisplay.textContent = bestLevel;
   }
 
-  // ✅ Anti-spam: only allow leaderboard submit if finalScore >= MIN_SUBMIT_SCORE
+  // Anti-spam: only allow leaderboard submit if finalScore >= MIN_SUBMIT_SCORE
   if (finalScore >= MIN_SUBMIT_SCORE) {
     saveScoreButton.disabled = false;
     saveStatus.textContent = "";
@@ -334,7 +342,7 @@ function endRound() {
   }
 
   if (passedScoreGate && passedMissGate) {
-    // ✅ Level cleared – allow NEXT level
+    // Level cleared – allow NEXT level
     messageArea.textContent =
       `Level ${level} cleared! You earned ${levelGain.toLocaleString()} points this level ` +
       `(${missed} missed turn${missed === 1 ? "" : "s"}).`;
@@ -347,7 +355,7 @@ function endRound() {
       startLevel(nextLevel);
     };
   } else {
-    // ❌ Run ends here
+    // Run ends here
     let reason = "";
     if (!passedScoreGate) {
       reason += `You needed at least ${requiredGain.toLocaleString()} points this level (you got ${levelGain.toLocaleString()}). `;
@@ -363,55 +371,11 @@ function endRound() {
     startButton.textContent = "Start Game";
     startButton.onclick = startGame;
 
-    // Clear level goals text when run ends
     if (levelGoals) levelGoals.textContent = "";
   }
 }
 
-
-
-
-
-function startLevel(level) {
-  const prevScore = gameState ? gameState.score : 0;
-
-  gameState = {
-    level,
-    turnIndex: 0,
-    turns: getDifficultyForLevel(level).turns,
-    score: prevScore,
-    scoreAtLevelStart: prevScore,
-    missedTurns: 0,
-    multiplier: 1,
-    chainCount: 0,
-    lastTileDelta: 0,
-    grid: generateGrid(level),
-    timePerTurnMs: getDifficultyForLevel(level).timePerTurnMs,
-    locked: false,
-  };
-
-  updateUIFromState();
-  updateLevelGoals();
-  renderGrid();
-  messageArea.textContent = `Level ${level}: Faster & trickier tiles.`;
-
-  startButton.disabled = true;
-  restartButton.disabled = false;
-  saveScoreButton.disabled = true;
-  saveStatus.textContent = "";
-
-  nextTurn();
-}
-
-function restartGame() {
-  resetTimer();
-  startButton.disabled = true;
-  startButton.textContent = "Start Game";
-  saveStatus.textContent = "";
-  saveStatus.style.color = "";
-  startGame();
-}
-
+// ---------- Leaderboard ----------
 
 async function loadLeaderboard() {
   if (!leaderboardList) return;
@@ -432,16 +396,14 @@ async function loadLeaderboard() {
     rows.forEach((row, index) => {
       const div = document.createElement("div");
       div.className = "leaderboard-row";
-    
+
       const safeName = escapeHtml(row.name || "Guest");
       const score = row.score ?? 0;
       const level = row.level ?? 1;
-    
-      // Format date/time
+
       let timeText = "";
       if (row.created_at) {
         const d = new Date(row.created_at);
-        // e.g. "11/16 9:23p"
         const month = d.getMonth() + 1;
         const day = d.getDate();
         let hours = d.getHours();
@@ -450,7 +412,7 @@ async function loadLeaderboard() {
         hours = hours % 12 || 12;
         timeText = `${month}/${day} ${hours}:${mins}${ampm}`;
       }
-    
+
       div.innerHTML = `
         <span class="rank">#${index + 1}</span>
         <span class="entry-name">${safeName}</span>
@@ -458,7 +420,7 @@ async function loadLeaderboard() {
         <span class="entry-level">Lv ${level}</span>
         <span class="entry-time">${timeText}</span>
       `;
-    
+
       fragment.appendChild(div);
     });
 
@@ -469,13 +431,11 @@ async function loadLeaderboard() {
   }
 }
 
-/**
- * Save score to Supabase
- */
 async function handleSaveScore() {
   if (!gameState) return;
   saveScoreButton.disabled = true;
   saveStatus.textContent = "Saving…";
+  saveStatus.style.color = "#9ca3af";
 
   try {
     const name = playerNameInput.value;
@@ -483,21 +443,30 @@ async function handleSaveScore() {
     saveStatus.textContent = "Score saved!";
     saveStatus.style.color = "#22c55e";
 
-    // Refresh leaderboard
     await loadLeaderboard();
   } catch (err) {
+    console.error("Save score error:", err);
     saveStatus.textContent = "Error saving score. Check console.";
     saveStatus.style.color = "#f97373";
+    // let them try again
     saveScoreButton.disabled = false;
   }
 }
 
+// ---------- Restart & Init ----------
 
-/**
- * Wire up top-level events.
- */
+function restartGame() {
+  resetTimer();
+  startButton.disabled = true;
+  startButton.textContent = "Start Game";
+  saveStatus.textContent = "";
+  saveStatus.style.color = "";
+  startGame();
+}
+
 function init() {
-  startButton.onclick = startGame;      // brand-new run
+  // Use onclick so we can override behavior safely
+  startButton.onclick = startGame;
   restartButton.onclick = restartGame;
   saveScoreButton.onclick = handleSaveScore;
 
@@ -508,8 +477,5 @@ function init() {
 
   loadLeaderboard();
 }
-
-
-
 
 init();
