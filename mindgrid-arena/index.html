@@ -50,8 +50,15 @@
           <div class="timer-fill" id="timerFill"></div>
         </div>
 
-        <div class="message" id="messageArea">
-          Click "Start Game" to begin.
+        <div class="message-controls-row">
+          <div class="message" id="messageArea">
+            Click "Start Game" to begin.
+          </div>
+        
+          <div class="controls-row">
+            <button id="startButton">Start Game</button>
+            <button id="restartButton" class="secondary">Restart</button>
+          </div>
         </div>
         
         <div class="level-goals-header">
@@ -90,11 +97,6 @@
           <!-- tiles injected by JS -->
         </div>
 
-
-        <div class="controls-row">
-          <button id="startButton">Start Game</button>
-          <button id="restartButton" class="secondary" disabled>Restart</button>
-        </div>
       </section>
 
       <aside class="side-panel">
