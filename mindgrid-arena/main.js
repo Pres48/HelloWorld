@@ -10,8 +10,8 @@ const multiplierDisplay = document.getElementById("multiplierDisplay");
 const timerFill = document.getElementById("timerFill");
 const messageArea = document.getElementById("messageArea");
 const startButton = document.getElementById("startButton");
-const restartButton = document.getElementById("restartButton");
 const endButton = document.getElementById("endButton");
+const restartButton = document.getElementById("restartButton");
 const playerNameInput = document.getElementById("playerNameInput");
 const bestScoreDisplay = document.getElementById("bestScoreDisplay");
 const bestLevelDisplay = document.getElementById("bestLevelDisplay");
@@ -85,8 +85,8 @@ function startGame() {
     level,
     turnIndex: 0,
     turns: getDifficultyForLevel(level).turns,
-    score: 0,
-    scoreAtLevelStart: 0,
+    score: 0,                 // new run
+    scoreAtLevelStart: 0,     // baseline for this level
     missedTurns: 0,
     multiplier: 1,
     chainCount: 0,
@@ -103,7 +103,7 @@ function startGame() {
 
   startButton.disabled = true;
   restartButton.disabled = false;
-  endButton.disabled = false;          // 👈 enable End Game
+  endButton.disabled = false;
   saveScoreButton.disabled = true;
   saveStatus.textContent = "";
 
@@ -117,8 +117,8 @@ function startLevel(level) {
     level,
     turnIndex: 0,
     turns: getDifficultyForLevel(level).turns,
-    score: prevScore,
-    scoreAtLevelStart: prevScore,
+    score: prevScore,             // cumulative
+    scoreAtLevelStart: prevScore, // baseline for this level
     missedTurns: 0,
     multiplier: 1,
     chainCount: 0,
@@ -142,12 +142,11 @@ function startLevel(level) {
   nextTurn();
 }
 
-
 function nextTurn() {
   if (!gameState) return;
 
   if (gameState.turnIndex >= gameState.turns) {
-    endRound();
+    endRound(); // normal end of level
     return;
   }
 
@@ -316,11 +315,46 @@ function updateLevelGoals() {
   levelGoals.textContent = `Level target: +${target.toLocaleString()} pts, Max misses: ${maxMiss}`;
 }
 
+// ---------- Auto-save to leaderboard ----------
+
+async function autoSaveScoreIfEligible() {
+  if (!gameState) return;
+
+  const finalScore = gameState.score;
+
+  if (finalScore < MIN_SUBMIT_SCORE) {
+    saveScoreButton.disabled = true;
+    saveStatus.textContent = `Reach at least ${MIN_SUBMIT_SCORE} points to appear on the global leaderboard.`;
+    saveStatus.style.color = "#9ca3af";
+    return;
+  }
+
+  saveScoreButton.disabled = true;
+  saveStatus.textContent = "Saving to leaderboard…";
+  saveStatus.style.color = "#9ca3af";
+
+  try {
+    const name = playerNameInput.value;
+    await saveScoreToSupabase(name, finalScore, gameState.level);
+
+    saveStatus.textContent = "Auto-saved to leaderboard.";
+    saveStatus.style.color = "#22c55e";
+
+    await loadLeaderboard();
+  } catch (err) {
+    console.error("Auto-save error:", err);
+    saveStatus.textContent = "Auto-save failed. Tap to retry.";
+    saveStatus.style.color = "#f97373";
+    saveScoreButton.disabled = false; // allow manual retry
+  }
+}
+
 // ---------- End of Round & Progression ----------
 
 function endRound(reason = "normal") {
   resetTimer();
   setTilesDisabled(true);
+  if (!gameState) return;
   gameState.locked = true;
 
   const finalScore = gameState.score;
@@ -342,10 +376,10 @@ function endRound(reason = "normal") {
     bestLevelDisplay.textContent = bestLevel;
   }
 
-  // Auto-save high scores or show why not
+  // Auto-save (or show why not)
   autoSaveScoreIfEligible();
 
-  // If player chose End Game, always treat as run over (no next level)
+  // If player chose End Game, always treat as run over
   if (reason === "quit") {
     messageArea.textContent =
       `Run ended by player at Level ${level}. ` +
@@ -354,14 +388,13 @@ function endRound(reason = "normal") {
     startButton.disabled = false;
     startButton.textContent = "Start Game";
     startButton.onclick = startGame;
-
-    endButton.disabled = true;           // 👈 no active run
+    endButton.disabled = true;
     if (levelGoals) levelGoals.textContent = "";
     return;
   }
 
-  // Normal end-of-level: use gates to decide
   if (passedScoreGate && passedMissGate) {
+    // Level cleared – allow NEXT level
     messageArea.textContent =
       `Level ${level} cleared! You earned ${levelGain.toLocaleString()} points this level ` +
       `(${missed} missed turn${missed === 1 ? "" : "s"}).`;
@@ -374,6 +407,7 @@ function endRound(reason = "normal") {
       startLevel(nextLevel);
     };
   } else {
+    // Run ends here due to failing goals
     let reasonText = "";
     if (!passedScoreGate) {
       reasonText += `You needed at least ${requiredGain.toLocaleString()} points this level (you got ${levelGain.toLocaleString()}). `;
@@ -392,7 +426,7 @@ function endRound(reason = "normal") {
     if (levelGoals) levelGoals.textContent = "";
   }
 
-  // In either case where round is done, no active run → disable End Game
+  // In any end-of-round case, there's no active run anymore
   endButton.disabled = true;
 }
 
@@ -420,7 +454,7 @@ async function loadLeaderboard() {
 
       const safeName = escapeHtml(row.name || "Guest");
       const score = row.score ?? 0;
-      const level = row.level ?? 1;
+      const lvl = row.level ?? 1;
 
       let timeText = "";
       if (row.created_at) {
@@ -438,7 +472,7 @@ async function loadLeaderboard() {
         <span class="rank">#${index + 1}</span>
         <span class="entry-name">${safeName}</span>
         <span class="entry-score">${score.toLocaleString()}</span>
-        <span class="entry-level">Lv ${level}</span>
+        <span class="entry-level">Lv ${lvl}</span>
         <span class="entry-time">${timeText}</span>
       `;
 
@@ -452,48 +486,18 @@ async function loadLeaderboard() {
   }
 }
 
-async function autoSaveScoreIfEligible() {
-  if (!gameState) return;
-
-  const finalScore = gameState.score;
-
-  // Below threshold: nothing to save, just show info
-  if (finalScore < MIN_SUBMIT_SCORE) {
-    saveScoreButton.disabled = true;
-    saveStatus.textContent = `Reach at least ${MIN_SUBMIT_SCORE} points to appear on the global leaderboard.`;
-    saveStatus.style.color = "#9ca3af";
-    return;
-  }
-
-  // Try auto-save
-  saveScoreButton.disabled = true;
-  saveStatus.textContent = "Saving to leaderboard…";
-  saveStatus.style.color = "#9ca3af";
-
-  try {
-    const name = playerNameInput.value;
-    await saveScoreToSupabase(name, finalScore, gameState.level);
-
-    saveStatus.textContent = "Auto-saved to leaderboard.";
-    saveStatus.style.color = "#22c55e";
-
-    await loadLeaderboard();
-  } catch (err) {
-    console.error("Auto-save error:", err);
-    saveStatus.textContent = "Auto-save failed. Tap to retry.";
-    saveStatus.style.color = "#f97373";
-    // Let player use the button to retry manually
-    saveScoreButton.disabled = false;
-  }
-}
-
 async function handleSaveScore() {
-  // Manual retry uses the same logic as auto-save
+  // Manual retry just reuses auto-save logic
   await autoSaveScoreIfEligible();
 }
 
+// ---------- End Game, Restart, Init ----------
 
-// ---------- Restart & Init ----------
+function endGame() {
+  // Only end if a run is active and not already locked
+  if (!gameState || gameState.locked) return;
+  endRound("quit");
+}
 
 function restartGame() {
   resetTimer();
@@ -504,13 +508,6 @@ function restartGame() {
   endButton.disabled = true;
   startGame();
 }
-
-function endGame() {
-  if (!gameState || gameState.locked) return;
-  // Treat as a normal run end, but marked as player-quit
-  endRound("quit");
-}
-
 
 function init() {
   // Main buttons
