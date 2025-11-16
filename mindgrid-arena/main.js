@@ -20,6 +20,7 @@ const saveStatus = document.getElementById("saveStatus");
 const lastMoveDisplay = document.getElementById("lastMoveDisplay");
 const leaderboardList = document.getElementById("leaderboardList");
 const levelGoals = document.getElementById("levelGoals");
+const playerNameHelper = document.getElementById("playerNameHelper");
 const rawName = playerNameInput.value.trim();
 const name = rawName || "Guest";
 
@@ -57,6 +58,34 @@ function escapeHtml(str) {
     }
   });
 }
+
+function setNameWarningActive(active) {
+  if (!playerNameInput || !playerNameHelper) return;
+  if (active) {
+    playerNameHelper.classList.add("warning");
+    playerNameInput.classList.add("name-warning");
+  } else {
+    playerNameHelper.classList.remove("warning");
+    playerNameInput.classList.remove("name-warning");
+  }
+}
+
+// Placeholder profanity checker – YOU fill in the patterns you care about.
+// This keeps the structure ready without me hardcoding any specific slurs.
+function isNameProfane(name) {
+  if (!name) return false;
+  const lowered = name.toLowerCase();
+
+  const prohibitedPatterns = [
+    // Example:
+    // /badword1/i,
+    // /badword2/i,
+    // etc.
+  ];
+
+  return prohibitedPatterns.some((re) => re.test(lowered));
+}
+
 
 // Required performance per level
 function getRequiredGainForLevel(level) {
