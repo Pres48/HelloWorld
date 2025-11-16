@@ -20,6 +20,9 @@ const saveStatus = document.getElementById("saveStatus");
 const lastMoveDisplay = document.getElementById("lastMoveDisplay");
 const leaderboardList = document.getElementById("leaderboardList");
 const levelGoals = document.getElementById("levelGoals");
+const rawName = playerNameInput.value.trim();
+const name = rawName || "Guest";
+await saveScoreToSupabase(name, finalScore, gameState.level);
 
 // popover elements
 const howToPlayInfoBtn = document.getElementById("howToPlayInfoBtn");
@@ -510,18 +513,50 @@ function restartGame() {
 }
 
 function init() {
-  // Main buttons
+  // --- Buttons ---
   startButton.onclick = startGame;
   restartButton.onclick = restartGame;
   endButton.onclick = endGame;
   saveScoreButton.onclick = handleSaveScore;
 
+  // --- Initial UI state ---
   bestScoreDisplay.textContent = "–";
   bestLevelDisplay.textContent = "–";
   restartButton.disabled = true;
   endButton.disabled = true;
   saveScoreButton.disabled = true;
 
+  // --- Restore player name from previous visit (localStorage) ---
+  try {
+    const savedName = localStorage.getItem("mindgridPlayerName");
+    if (savedName && typeof savedName === "string" && playerNameInput) {
+      playerNameInput.value = savedName;
+    }
+  } catch (e) {
+    // localStorage might be disabled; fail silently
+    console.warn("Name restore skipped (localStorage unavailable):", e);
+  }
+
+  // --- Persist player name on change ---
+  if (playerNameInput) {
+    playerNameInput.addEventListener("input", () => {
+      const raw = playerNameInput.value || "";
+      const trimmed = raw.trim();
+
+      try {
+        if (trimmed.length === 0) {
+          // Optional: clear key if empty
+          localStorage.removeItem("mindgridPlayerName");
+        } else {
+          localStorage.setItem("mindgridPlayerName", trimmed);
+        }
+      } catch (e) {
+        console.warn("Name save skipped (localStorage unavailable):", e);
+      }
+    });
+  }
+
+  // --- Load leaderboard on page load ---
   loadLeaderboard();
 
   // --- Popover helpers ---
@@ -529,7 +564,7 @@ function init() {
     if (!popover) return;
     const isVisible = popover.classList.contains("visible");
 
-    // close all first
+    // Close all first
     [howToPlayInfoPopover, levelGoalsInfoPopover, leaderboardInfoPopover].forEach((p) => {
       if (p) p.classList.remove("visible");
     });
@@ -560,14 +595,14 @@ function init() {
     };
   }
 
-  // Click anywhere else closes all
+  // Click anywhere else closes all popovers
   document.addEventListener("click", () => {
     [howToPlayInfoPopover, levelGoalsInfoPopover, leaderboardInfoPopover].forEach((p) => {
       if (p) p.classList.remove("visible");
     });
   });
 
-  // Prevent clicks inside popovers from closing them
+  // Prevent clicks inside popovers from closing them immediately
   [howToPlayInfoPopover, levelGoalsInfoPopover, leaderboardInfoPopover].forEach((p) => {
     if (!p) return;
     p.addEventListener("click", (e) => {
@@ -575,5 +610,6 @@ function init() {
     });
   });
 }
+
 
 init();
