@@ -101,6 +101,29 @@ body {
   font-size: 0.8rem;
 }
 
+.player-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.player-info-label {
+  font-size: 0.75rem;
+  color: var(--text-soft);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.player-info-helper {
+  font-size: 0.66rem;
+  color: var(--text-soft);
+  opacity: 0.75;
+  margin-left: 2px;
+  line-height: 1.25;
+}
+
+
 /* Level Goals */
 
 .level-goals {
