@@ -19,6 +19,9 @@ const saveStatus = document.getElementById("saveStatus");
 const lastMoveDisplay = document.getElementById("lastMoveDisplay");
 const leaderboardList = document.getElementById("leaderboardList");
 const levelGoals = document.getElementById("levelGoals");
+const howToPlayInfoBtn = document.getElementById("howToPlayInfoBtn");
+const howToPlayInfoPopover = document.getElementById("howToPlayInfoPopover");
+
 
 const MIN_SUBMIT_SCORE = 200; // minimum score required to submit to global leaderboard
 
@@ -476,7 +479,7 @@ function restartGame() {
 }
 
 function init() {
-  // Use onclick so we can override behavior safely
+  // existing button hooks
   startButton.onclick = startGame;
   restartButton.onclick = restartGame;
   saveScoreButton.onclick = handleSaveScore;
@@ -486,7 +489,26 @@ function init() {
   restartButton.disabled = true;
   saveScoreButton.disabled = true;
 
+  // Load leaderboard on page load
   loadLeaderboard();
+
+  // 👉 How to Play popover behavior
+  if (howToPlayInfoBtn && howToPlayInfoPopover) {
+    howToPlayInfoBtn.onclick = (event) => {
+      event.stopPropagation();
+      howToPlayInfoPopover.classList.toggle("visible");
+    };
+
+    // Click anywhere else closes it
+    document.addEventListener("click", () => {
+      howToPlayInfoPopover.classList.remove("visible");
+    });
+
+    // Prevent clicks inside the popover from closing it immediately
+    howToPlayInfoPopover.addEventListener("click", (event) => {
+      event.stopPropagation();
+    });
+  }
 }
 
 init();
