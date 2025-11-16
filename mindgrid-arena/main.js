@@ -314,7 +314,7 @@ function endRound() {
   const passedScoreGate = levelGain >= requiredGain;
   const passedMissGate = missed <= allowedMisses;
 
-  // Session best tracking (still based on cumulative score)
+  // Session best tracking based on cumulative score
   if (finalScore > bestScore) {
     bestScore = finalScore;
     bestLevel = level;
@@ -322,7 +322,7 @@ function endRound() {
     bestLevelDisplay.textContent = bestLevel;
   }
 
-  // Leaderboard anti-spam check (unchanged)
+  // ✅ Anti-spam: only allow leaderboard submit if finalScore >= MIN_SUBMIT_SCORE
   if (finalScore >= MIN_SUBMIT_SCORE) {
     saveScoreButton.disabled = false;
     saveStatus.textContent = "";
@@ -355,20 +355,19 @@ function endRound() {
     if (!passedMissGate) {
       reason += `Too many missed turns (allowed ${allowedMisses}, you had ${missed}).`;
     }
-  
+
     messageArea.textContent =
       `Run over at Level ${level}. Final score: ${finalScore.toLocaleString()}. ${reason}`;
-  
-    // Reset UI buttons
+
     startButton.disabled = false;
     startButton.textContent = "Start Game";
     startButton.onclick = startGame;
-  
-    // ✅ CLEAR LEVEL GOALS WHEN RUN ENDS
+
+    // Clear level goals text when run ends
     if (levelGoals) levelGoals.textContent = "";
-  
   }
 }
+
 
 
 
