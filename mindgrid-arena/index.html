@@ -53,12 +53,43 @@
         <div class="message" id="messageArea">
           Click "Start Game" to begin.
         </div>
-
+        
+        <div class="level-goals-header">
+          <span class="level-goals-label">Level Goals</span>
+          <button
+            type="button"
+            class="info-icon"
+            id="levelGoalsInfoBtn"
+            aria-label="More info about level goals"
+          >
+            ?
+          </button>
+          <div class="info-popover" id="levelGoalsInfoPopover">
+            <strong>How level goals are calculated</strong>
+            <p>
+              Each level has two requirements to advance:
+            </p>
+            <ul>
+              <li>
+                <strong>Score gain this level</strong> must be at least the
+                <em>Level target</em> shown above the grid.
+              </li>
+              <li>
+                You must stay under the <strong>Max misses</strong> shown for the level.
+              </li>
+            </ul>
+            <p>
+              Later levels require bigger point gains and allow fewer missed turns.
+            </p>
+          </div>
+        </div>
+        
         <div class="level-goals" id="levelGoals"></div>
-
+        
         <div class="grid" id="gridContainer">
           <!-- tiles injected by JS -->
         </div>
+
 
         <div class="controls-row">
           <button id="startButton">Start Game</button>
@@ -161,12 +192,41 @@
 
       
         <!-- GLOBAL LEADERBOARD (SUPABASE) -->
-        <section class="panel-block">
-          <h2>Leaderboard</h2>
-          <div id="leaderboardList" class="leaderboard-list">
-            <p class="soft-text">Loading…</p>
-          </div>
-        </section>
+          <section class="panel-block">
+            <div class="panel-header-with-icon">
+              <h2>Leaderboard</h2>
+              <button
+                type="button"
+                class="info-icon"
+                id="leaderboardInfoBtn"
+                aria-label="More info about the leaderboard"
+              >
+                ?
+              </button>
+              <div class="info-popover" id="leaderboardInfoPopover">
+                <strong>How the leaderboard works</strong>
+                <ul>
+                  <li>
+                    Scores are based on your <strong>total run</strong> (all levels in one run).
+                  </li>
+                  <li>
+                    You must score at least <strong>200 points</strong> in a run to appear here.
+                  </li>
+                  <li>
+                    Higher <strong>score</strong> beats lower, ties broken by
+                    <strong>higher level reached</strong>.
+                  </li>
+                  <li>
+                    Your best runs are <strong>auto-saved</strong> at the end of a level or when a run ends.
+                  </li>
+                </ul>
+              </div>
+            </div>
+          
+            <div id="leaderboardList" class="leaderboard-list">
+              <p class="soft-text">Loading…</p>
+            </div>
+          </section>
       </aside>
 
     </main>
