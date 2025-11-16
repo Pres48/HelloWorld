@@ -16,12 +16,14 @@ function randomInt(min, max) {
  * You can tweak this curve over time.
  */
 export function getDifficultyForLevel(level) {
-  const baseTimeMs = 3000; // level 1
-  const minTimeMs = 900;
+  // Slower start, smoother ramp
+  const baseTimeMs = 4500;   // Level 1 = 4.5 seconds per turn
+  const minTimeMs = 1400;    // Hard cap for very high levels
 
+  // Each level shaves off 150ms, until minTimeMs
   const timePerTurnMs = Math.max(
     minTimeMs,
-    baseTimeMs - (level - 1) * 80
+    baseTimeMs - (level - 1) * 150
   );
 
   const gridSize = level >= 15 ? 7 : 6;
@@ -45,6 +47,7 @@ export function getDifficultyForLevel(level) {
     },
   };
 }
+
 
 function pickTileType(weights) {
   const entries = Object.entries(weights);
