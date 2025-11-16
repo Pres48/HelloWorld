@@ -11,6 +11,7 @@ const timerFill = document.getElementById("timerFill");
 const messageArea = document.getElementById("messageArea");
 const startButton = document.getElementById("startButton");
 const restartButton = document.getElementById("restartButton");
+const endButton = document.getElementById("endButton");   // 👈 add this
 const playerNameInput = document.getElementById("playerNameInput");
 const bestScoreDisplay = document.getElementById("bestScoreDisplay");
 const bestLevelDisplay = document.getElementById("bestLevelDisplay");
@@ -84,8 +85,8 @@ function startGame() {
     level,
     turnIndex: 0,
     turns: getDifficultyForLevel(level).turns,
-    score: 0,                 // new run
-    scoreAtLevelStart: 0,     // baseline for this level
+    score: 0,
+    scoreAtLevelStart: 0,
     missedTurns: 0,
     multiplier: 1,
     chainCount: 0,
@@ -102,6 +103,7 @@ function startGame() {
 
   startButton.disabled = true;
   restartButton.disabled = false;
+  endButton.disabled = false;          // 👈 enable End Game
   saveScoreButton.disabled = true;
   saveStatus.textContent = "";
 
@@ -115,8 +117,8 @@ function startLevel(level) {
     level,
     turnIndex: 0,
     turns: getDifficultyForLevel(level).turns,
-    score: prevScore,             // cumulative
-    scoreAtLevelStart: prevScore, // baseline for this level
+    score: prevScore,
+    scoreAtLevelStart: prevScore,
     missedTurns: 0,
     multiplier: 1,
     chainCount: 0,
@@ -133,11 +135,13 @@ function startLevel(level) {
 
   startButton.disabled = true;
   restartButton.disabled = false;
+  endButton.disabled = false;
   saveScoreButton.disabled = true;
   saveStatus.textContent = "";
 
   nextTurn();
 }
+
 
 function nextTurn() {
   if (!gameState) return;
@@ -314,7 +318,7 @@ function updateLevelGoals() {
 
 // ---------- End of Round & Progression ----------
 
-function endRound() {
+function endRound(reason = "normal") {
   resetTimer();
   setTilesDisabled(true);
   gameState.locked = true;
@@ -338,11 +342,26 @@ function endRound() {
     bestLevelDisplay.textContent = bestLevel;
   }
 
-  // Auto-save high scores (or show why they can't be saved)
+  // Auto-save high scores or show why not
   autoSaveScoreIfEligible();
 
+  // If player chose End Game, always treat as run over (no next level)
+  if (reason === "quit") {
+    messageArea.textContent =
+      `Run ended by player at Level ${level}. ` +
+      `Final score: ${finalScore.toLocaleString()}.`;
+
+    startButton.disabled = false;
+    startButton.textContent = "Start Game";
+    startButton.onclick = startGame;
+
+    endButton.disabled = true;           // 👈 no active run
+    if (levelGoals) levelGoals.textContent = "";
+    return;
+  }
+
+  // Normal end-of-level: use gates to decide
   if (passedScoreGate && passedMissGate) {
-    // Level cleared – allow NEXT level
     messageArea.textContent =
       `Level ${level} cleared! You earned ${levelGain.toLocaleString()} points this level ` +
       `(${missed} missed turn${missed === 1 ? "" : "s"}).`;
@@ -355,17 +374,16 @@ function endRound() {
       startLevel(nextLevel);
     };
   } else {
-    // Run ends here
-    let reason = "";
+    let reasonText = "";
     if (!passedScoreGate) {
-      reason += `You needed at least ${requiredGain.toLocaleString()} points this level (you got ${levelGain.toLocaleString()}). `;
+      reasonText += `You needed at least ${requiredGain.toLocaleString()} points this level (you got ${levelGain.toLocaleString()}). `;
     }
     if (!passedMissGate) {
-      reason += `Too many missed turns (allowed ${allowedMisses}, you had ${missed}).`;
+      reasonText += `Too many missed turns (allowed ${allowedMisses}, you had ${missed}).`;
     }
 
     messageArea.textContent =
-      `Run over at Level ${level}. Final score: ${finalScore.toLocaleString()}. ${reason}`;
+      `Run over at Level ${level}. Final score: ${finalScore.toLocaleString()}. ${reasonText}`;
 
     startButton.disabled = false;
     startButton.textContent = "Start Game";
@@ -373,6 +391,9 @@ function endRound() {
 
     if (levelGoals) levelGoals.textContent = "";
   }
+
+  // In either case where round is done, no active run → disable End Game
+  endButton.disabled = true;
 }
 
 // ---------- Leaderboard ----------
@@ -480,18 +501,28 @@ function restartGame() {
   startButton.textContent = "Start Game";
   saveStatus.textContent = "";
   saveStatus.style.color = "";
+  endButton.disabled = true;
   startGame();
 }
+
+function endGame() {
+  if (!gameState || gameState.locked) return;
+  // Treat as a normal run end, but marked as player-quit
+  endRound("quit");
+}
+
 
 function init() {
   // Main buttons
   startButton.onclick = startGame;
   restartButton.onclick = restartGame;
+  endButton.onclick = endGame;
   saveScoreButton.onclick = handleSaveScore;
 
   bestScoreDisplay.textContent = "–";
   bestLevelDisplay.textContent = "–";
   restartButton.disabled = true;
+  endButton.disabled = true;
   saveScoreButton.disabled = true;
 
   loadLeaderboard();
