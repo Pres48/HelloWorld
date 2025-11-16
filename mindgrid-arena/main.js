@@ -19,6 +19,8 @@ const saveStatus = document.getElementById("saveStatus");
 const lastMoveDisplay = document.getElementById("lastMoveDisplay");
 const leaderboardList = document.getElementById("leaderboardList");
 const MIN_SUBMIT_SCORE = 200; // minimum score required to submit to global leaderboard
+const levelGoals = document.getElementById("levelGoals");
+
 
 let gameState = null;
 let timerInterval = null;
@@ -87,7 +89,9 @@ function startGame() {
   };
 
   updateUIFromState();
+  updateLevelGoals();
   renderGrid();
+
   messageArea.textContent = "Pick a tile before the time runs out!";
 
   startButton.disabled = true;
@@ -264,6 +268,20 @@ function updateUIFromState() {
   }
 }
 
+function updateLevelGoals() {
+  if (!gameState || !levelGoals) {
+    if (levelGoals) levelGoals.textContent = "";
+    return;
+  }
+
+  const level = gameState.level;
+  const target = getRequiredGainForLevel(level);
+  const maxMiss = getAllowedMissesForLevel(level);
+
+  levelGoals.textContent = `Level target: +${target.toLocaleString()} pts, Max misses: ${maxMiss}`;
+}
+
+
 function updateTurnDisplay() {
   if (!gameState) {
     turnDisplay.textContent = "0 / 0";
@@ -337,13 +355,18 @@ function endRound() {
     if (!passedMissGate) {
       reason += `Too many missed turns (allowed ${allowedMisses}, you had ${missed}).`;
     }
-
+  
     messageArea.textContent =
       `Run over at Level ${level}. Final score: ${finalScore.toLocaleString()}. ${reason}`;
-
+  
+    // Reset UI buttons
     startButton.disabled = false;
     startButton.textContent = "Start Game";
     startButton.onclick = startGame;
+  
+    // ✅ CLEAR LEVEL GOALS WHEN RUN ENDS
+    if (levelGoals) levelGoals.textContent = "";
+  
   }
 }
 
@@ -357,9 +380,9 @@ function startLevel(level) {
     level,
     turnIndex: 0,
     turns: getDifficultyForLevel(level).turns,
-    score: prevScore,              // ✅ cumulative
-    scoreAtLevelStart: prevScore,  // ✅ baseline for this level
-    missedTurns: 0,                // reset per level
+    score: prevScore,
+    scoreAtLevelStart: prevScore,
+    missedTurns: 0,
     multiplier: 1,
     chainCount: 0,
     lastTileDelta: 0,
@@ -369,6 +392,7 @@ function startLevel(level) {
   };
 
   updateUIFromState();
+  updateLevelGoals();
   renderGrid();
   messageArea.textContent = `Level ${level}: Faster & trickier tiles.`;
 
@@ -379,8 +403,6 @@ function startLevel(level) {
 
   nextTurn();
 }
-
-
 
 function restartGame() {
   resetTimer();
