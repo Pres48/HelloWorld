@@ -362,13 +362,36 @@ async function autoSaveScoreIfEligible() {
     return;
   }
 
+  const rawName = (playerNameInput && playerNameInput.value) ? playerNameInput.value : "";
+  const trimmed = rawName.trim();
+
+  // 🔶 High score + blank name → warn, don't save yet
+  if (finalScore >= HIGH_SCORE_NAME_WARN_THRESHOLD && trimmed.length === 0) {
+    saveStatus.textContent = "Enter a name to save this high score on the public leaderboard.";
+    saveStatus.style.color = "#f97373";
+    saveScoreButton.disabled = false; // allow manual retry after they type
+    setNameWarningActive(true);
+    return;
+  }
+
+  // 🚫 Profanity/inappropriate filter
+  if (trimmed && isNameProfane(trimmed)) {
+    saveStatus.textContent = "That name isn't allowed on the public leaderboard. Please choose a different one.";
+    saveStatus.style.color = "#f97373";
+    saveScoreButton.disabled = false;
+    setNameWarningActive(true);
+    return;
+  }
+
+  // ✅ Safe to use. If blank but below threshold case, fallback to Guest.
+  const nameToUse = trimmed || "Guest";
+
   saveScoreButton.disabled = true;
   saveStatus.textContent = "Saving to leaderboard…";
   saveStatus.style.color = "#9ca3af";
 
   try {
-    const name = playerNameInput.value;
-    await saveScoreToSupabase(name, finalScore, gameState.level);
+    await saveScoreToSupabase(nameToUse, finalScore, gameState.level);
 
     saveStatus.textContent = "Auto-saved to leaderboard.";
     saveStatus.style.color = "#22c55e";
@@ -381,6 +404,7 @@ async function autoSaveScoreIfEligible() {
     saveScoreButton.disabled = false; // allow manual retry
   }
 }
+
 
 // ---------- End of Round & Progression ----------
 
@@ -573,6 +597,9 @@ function init() {
       const raw = playerNameInput.value || "";
       const trimmed = raw.trim();
 
+      // Clear any previous warning as they type
+      setNameWarningActive(false);
+
       try {
         if (trimmed.length === 0) {
           // Optional: clear key if empty
@@ -585,6 +612,7 @@ function init() {
       }
     });
   }
+
 
   // --- Load leaderboard on page load ---
   loadLeaderboard();
