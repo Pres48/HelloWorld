@@ -264,12 +264,20 @@ body {
 
 /* Message */
 
+.message-controls-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
 .message {
   min-height: 32px;
   display: flex;
   align-items: center;
   font-size: 0.8rem;
   color: var(--text-soft);
+  flex: 1; /* let message take available space */
 }
 
 /* Grid */
@@ -358,7 +366,7 @@ body {
   display: flex;
   justify-content: flex-end;
   gap: 10px;
-  margin-top: 8px;
+  margin-top: 0; /* was 8px, now inline with message */
 }
 
 button {
