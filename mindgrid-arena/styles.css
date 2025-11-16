@@ -104,6 +104,19 @@ body {
   margin-bottom: 4px;
 }
 
+.level-goals-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 2px;
+  font-size: 0.75rem;
+  color: var(--text-soft);
+}
+
+.level-goals-label {
+  font-weight: 600;
+}
+
 .panel-header-with-icon {
   display: flex;
   align-items: center;
