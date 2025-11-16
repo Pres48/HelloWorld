@@ -110,15 +110,34 @@ body {
   display: flex;
   align-items: center;
   gap: 6px;
-  margin-bottom: 2px;
   font-size: 0.75rem;
   color: var(--text-soft);
-  position: relative; /* anchor popover to this container */
+  position: relative; /* anchors popover */
+  margin-bottom: 4px;
 }
 
 .level-goals-label {
   font-weight: 600;
 }
+
+.level-goals-separator {
+  opacity: 0.5;
+  margin: 0 4px;
+}
+
+.level-goals-text {
+  font-size: 0.75rem;
+  white-space: nowrap;
+  color: var(--text-soft);
+}
+
+/* Fix popover placement - directly under the ? icon */
+#levelGoalsInfoPopover {
+  top: 130%;
+  left: 0;
+  transform: translateX(-10px); /* nudge slightly left under the icon */
+}
+
 
 /* Headers with ? icon */
 
@@ -182,13 +201,6 @@ body {
 
 .info-popover p {
   margin: 4px 0;
-}
-
-/* Specific tweak so Level Goals popover hugs the icon nicely */
-#levelGoalsInfoPopover {
-  top: 110%;
-  right: 0;
-  left: auto;
 }
 
 /* Layout */
