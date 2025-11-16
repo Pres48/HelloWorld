@@ -109,21 +109,25 @@
         </section>
       
         <!-- HIGH SCORE (LOCAL BEST) -->
-        <section class="panel-block">
-          <h2>High Score</h2>
-          <div id="highScoreBox" class="highscore-box">
-            <div class="highscore-row">
-              <span class="label">Best Score:</span>
-              <span class="value" id="bestScoreDisplay">–</span>
+          <section class="panel-block">
+            <h2>Session High Score</h2>
+            <p class="soft-text" style="margin-bottom: 4px;">
+              Best run in this browser session.
+            </p>
+            <div id="highScoreBox" class="highscore-box">
+              <div class="highscore-row">
+                <span class="label">Best Score:</span>
+                <span class="value" id="bestScoreDisplay">–</span>
+              </div>
+              <div class="highscore-row">
+                <span class="label">Best Level:</span>
+                <span class="value" id="bestLevelDisplay">–</span>
+              </div>
+              <button id="saveScoreButton" class="secondary" disabled>Save to Leaderboard</button>
+              <p id="saveStatus" class="save-status"></p>
             </div>
-            <div class="highscore-row">
-              <span class="label">Best Level:</span>
-              <span class="value" id="bestLevelDisplay">–</span>
-            </div>
-            <button id="saveScoreButton" class="secondary" disabled>Save Score</button>
-            <p id="saveStatus" class="save-status"></p>
-          </div>
-        </section>
+          </section>
+
       
         <!-- GLOBAL LEADERBOARD (SUPABASE) -->
         <section class="panel-block">
