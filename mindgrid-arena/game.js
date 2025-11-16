@@ -1,5 +1,26 @@
 // game.js
 
+// ==== EASY TUNING: TILE VALUE RANGES ====
+
+// Number tiles: base points before multiplier
+// const NUMBER_MIN = 2; const NUMBER_MAX = 10;
+const NUMBER_MIN = 5; const NUMBER_MAX = 20;
+
+// Bonus tiles: "steps" used as +x(steps * 0.25) to the multiplier
+// e.g., 1 => +x0.25, 2 => +x0.50, etc.
+const BONUS_STEPS_MIN = 1; const BONUS_STEPS_MAX = 3;
+
+// Chain tiles: base points before chain multiplier
+// const CHAIN_MIN = 3; const CHAIN_MAX = 7;
+const CHAIN_MIN = 5; const CHAIN_MAX = 12;
+
+// Risk tiles: random integer between these two
+// You can make this all positive, all negative, or mixed.
+// const RISK_MIN = -8; const RISK_MAX = 16;
+const RISK_MIN = -25; const RISK_MAX = 40;
+
+// =========================================
+
 export const TILE_TYPES = {
   NUMBER: "number",
   BONUS: "bonus",
@@ -48,7 +69,6 @@ export function getDifficultyForLevel(level) {
   };
 }
 
-
 function pickTileType(weights) {
   const entries = Object.entries(weights);
   const total = entries.reduce((sum, [, w]) => sum + w, 0);
@@ -75,16 +95,19 @@ export function generateGrid(level) {
 
       switch (type) {
         case TILE_TYPES.NUMBER:
-          value = randomInt(2, 10);
+          value = randomInt(NUMBER_MIN, NUMBER_MAX);
           break;
+
         case TILE_TYPES.BONUS:
-          value = randomInt(1, 3); // multiplier steps
+          value = randomInt(BONUS_STEPS_MIN, BONUS_STEPS_MAX); // multiplier steps
           break;
+
         case TILE_TYPES.CHAIN:
-          value = randomInt(3, 7);
+          value = randomInt(CHAIN_MIN, CHAIN_MAX);
           break;
+
         case TILE_TYPES.RISK:
-          value = randomInt(-8, 16);
+          value = randomInt(RISK_MIN, RISK_MAX);
           break;
       }
 
@@ -115,15 +138,18 @@ export function resolveTileSelection(tile, state) {
 
   if (type === TILE_TYPES.NUMBER) {
     basePoints = value;
+
   } else if (type === TILE_TYPES.CHAIN) {
     const chainFactor = 1 + newState.chainCount * 0.35;
     basePoints = Math.round(value * chainFactor);
     newState.chainCount += 1;
+
   } else if (type === TILE_TYPES.BONUS) {
     newState.multiplier = parseFloat(
       (newState.multiplier + value * 0.25).toFixed(2)
     );
     basePoints = 1; // small base
+
   } else if (type === TILE_TYPES.RISK) {
     basePoints = value;
     if (value < 0) {
