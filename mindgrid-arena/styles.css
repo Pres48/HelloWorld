@@ -45,6 +45,10 @@ body {
   gap: 16px;
 }
 
+#restartButton {
+  display: none !important;
+}
+
 /* Top Bar */
 
 .top-bar {
