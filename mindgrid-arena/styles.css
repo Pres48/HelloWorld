@@ -104,6 +104,68 @@ body {
   margin-bottom: 4px;
 }
 
+.panel-header-with-icon {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  position: relative;
+  margin-bottom: 6px;
+}
+
+.panel-header-with-icon h2 {
+  margin: 0;
+}
+
+.info-icon {
+  width: 18px;
+  height: 18px;
+  border-radius: 999px;
+  border: 1px solid rgba(148, 163, 184, 0.8);
+  background: #020617;
+  color: #e5e7eb;
+  font-size: 0.7rem;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  padding: 0;
+}
+
+.info-icon:hover {
+  background: #111827;
+}
+
+.info-popover {
+  position: absolute;
+  top: 120%;
+  left: 0;
+  z-index: 20;
+  width: 260px;
+  max-width: 80vw;
+  padding: 8px 10px;
+  background: #020617;
+  border-radius: 12px;
+  border: 1px solid rgba(148, 163, 184, 0.8);
+  box-shadow: 0 14px 40px rgba(0, 0, 0, 0.8);
+  font-size: 0.75rem;
+  color: #e5e7eb;
+  display: none;
+}
+
+.info-popover.visible {
+  display: block;
+}
+
+.info-popover ul {
+  margin: 4px 0;
+  padding-left: 18px;
+}
+
+.info-popover p {
+  margin: 4px 0;
+}
+
 
 /* Layout */
 
