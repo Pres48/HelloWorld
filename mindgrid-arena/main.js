@@ -243,7 +243,12 @@ function updateTurnDisplay() {
     turnDisplay.textContent = "0 / 0";
     return;
   }
-  turnDisplay.textContent = `${gameState.turnIndex + 1} / ${gameState.turns}`;
+
+  // turnIndex is "turns completed" (0-based).
+  // For display, show current turn as (turnIndex + 1),
+  // but never higher than total turns.
+  const currentTurn = Math.min(gameState.turnIndex + 1, gameState.turns);
+  turnDisplay.textContent = `${currentTurn} / ${gameState.turns}`;
 }
 
 /**
