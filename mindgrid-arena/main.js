@@ -607,6 +607,16 @@ function init() {
   endButton.disabled = true;
   saveScoreButton.disabled = true;
 
+  // 👇 NEW: show Level 1 target on initial load
+  if (levelGoals) {
+    const initialLevel = 1;
+    const target = getRequiredGainForLevel(initialLevel);
+    const maxMiss = getAllowedMissesForLevel(initialLevel);
+    levelGoals.textContent =
+      `Level ${initialLevel} target: +${target.toLocaleString()} pts, ` +
+      `Max misses: ${maxMiss}`;
+  }
+
   // Restore player name from previous visit, if any
   try {
     const savedName = localStorage.getItem("mindgridPlayerName");
