@@ -80,7 +80,7 @@ function makeEquationString(value, multiStepChance = 0) {
 
     if (Number.isInteger(c) && c >= 0) {
       // e.g. "10 + 7 - 3"
-      return `${a} + ${b} - ${c}`;
+      return `${a}+${b}-${c}`;
     }
   }
 
@@ -91,13 +91,13 @@ function makeEquationString(value, multiStepChance = 0) {
   if (op === "add") {
     const a = Math.max(1, Math.floor(value / 2));
     const b = value - a;
-    return `${a} + ${b}`;
+    return `${a}+${b}`;
   }
 
   if (op === "sub") {
     const a = value + Math.max(1, Math.floor(value / 3));
     const b = a - value;
-    return `${a} - ${b}`;
+    return `${a}-${b}`;
   }
 
   if (op === "mul" && value >= 4) {
@@ -106,7 +106,7 @@ function makeEquationString(value, multiStepChance = 0) {
       if (value % i === 0) {
         const a = i;
         const b = value / i;
-        return `${a} × ${b}`;
+        return `${a}×${b}`;
       }
     }
   }
@@ -114,7 +114,7 @@ function makeEquationString(value, multiStepChance = 0) {
   if (op === "div" && value >= 4) {
     const b = Math.max(2, Math.floor(value / 2));
     const a = value * b;
-    return `${a} ÷ ${b}`;
+    return `${a}÷${b}`;
   }
 
   // Fallback: plain value
