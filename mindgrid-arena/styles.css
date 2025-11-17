@@ -585,7 +585,7 @@ button:disabled {
 /* Accordion (How to Play collapsible) */
 
 .how-to-play-block {
-  /* optional, keeps spacing consistent */
+  /* keeps spacing consistent with other panels */
 }
 
 .accordion-header {
@@ -620,14 +620,19 @@ button:disabled {
   transform: rotate(90deg);
 }
 
+/* Smooth slide for content */
 .accordion-content {
-  display: none;
+  max-height: 0;
+  overflow: hidden;
   margin-top: 8px;
+  transition: max-height 0.3s ease, opacity 0.25s ease;
+  opacity: 0;
 }
 
 .accordion-content.open {
-  display: block;
+  opacity: 1;
 }
+
 
 /* Responsive */
 
