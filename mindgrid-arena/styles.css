@@ -582,6 +582,53 @@ button:disabled {
   color: var(--text-soft);
 }
 
+/* Accordion (How to Play collapsible) */
+
+.how-to-play-block {
+  /* optional, keeps spacing consistent */
+}
+
+.accordion-header {
+  width: 100%;
+  background: none;
+  border: none;
+  padding: 0;
+  margin: 0 0 8px 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text-main);
+
+  /* override global button styles */
+  box-shadow: none;
+}
+
+.accordion-header:hover {
+  color: #ffffff;
+}
+
+.accordion-icon {
+  font-size: 1rem;
+  color: var(--text-soft);
+  transition: transform 0.25s ease;
+}
+
+.accordion-icon.open {
+  transform: rotate(90deg);
+}
+
+.accordion-content {
+  display: none;
+  margin-top: 8px;
+}
+
+.accordion-content.open {
+  display: block;
+}
+
 /* Responsive */
 
 @media (max-width: 800px) {
@@ -610,5 +657,4 @@ button:disabled {
   .grid {
     grid-auto-rows: 46px;
   }
-}
 }
