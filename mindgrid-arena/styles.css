@@ -722,6 +722,7 @@ button:disabled {
 
   .tile-value {
     display: inline-block;
+    font-size: 0.72rem !important;
     transform-origin: center;
     white-space: nowrap;
   }
