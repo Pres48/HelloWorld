@@ -464,7 +464,7 @@ function endRound(reason = "normal") {
   // If player chose End Game, always treat as run over
   if (reason === "quit") {
     messageArea.innerHTML =
-      `<strong>Run ended by player at Level ${level}.</strong> ` +
+      `<strong class="over">Run ended by player at Level ${level}.</strong> ` +
       `Final score: ${finalScore.toLocaleString()}.`;
 
     startButton.disabled = false;
@@ -500,7 +500,7 @@ function endRound(reason = "normal") {
     }
 
     messageArea.innerHTML =
-      `<strong>Run over at Level ${level}.</strong> ` +
+      `<strong class="over">Run over at Level ${level}.</strong> ` +
       `Final score: ${finalScore.toLocaleString()}. ${reasonText}`;
 
     startButton.disabled = false;
