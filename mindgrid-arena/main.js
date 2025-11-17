@@ -126,6 +126,143 @@ function getAllowedMissesForLevel(level) {
   return 1;
 }
 
+// ---------- Fairness helpers: ensure each level is beatable ----------
+
+/**
+ * Compute a *feasible* best-case gain for a given static grid and turn count.
+ * We only simulate a few simple strategies that are actually possible:
+ *  - Always best NUMBER tile
+ *  - Always best CHAIN tile
+ *  - A few turns of BONUS, then CHAIN
+ *  - Always best positive RISK tile
+ *
+ * Because these are all legal strategies, this is a *lower bound* on true
+ * maximum potential gain. If this is < requiredGain, the level is definitely
+ * too hard → we reroll the grid.
+ */
+function computeMaxPossibleGain(grid, turns) {
+  let bestNumber = null;
+  let bestChain = null;
+  let bestBonus = null;
+  let bestRiskPos = null;
+
+  // Scan grid for best values of each tile type
+  grid.forEach((row) => {
+    row.forEach((tile) => {
+      const v = tile.value;
+      switch (tile.type) {
+        case "number":
+          bestNumber = bestNumber === null ? v : Math.max(bestNumber, v);
+          break;
+        case "chain":
+          bestChain = bestChain === null ? v : Math.max(bestChain, v);
+          break;
+        case "bonus":
+          bestBonus = bestBonus === null ? v : Math.max(bestBonus, v);
+          break;
+        case "risk":
+          if (v > 0) {
+            bestRiskPos = bestRiskPos === null ? v : Math.max(bestRiskPos, v);
+          }
+          break;
+      }
+    });
+  });
+
+  let maxGain = 0;
+
+  // Strategy A: always best NUMBER tile (no chains/mult changes)
+  if (bestNumber !== null) {
+    let mult = 1;
+    let total = 0;
+    for (let i = 0; i < turns; i++) {
+      const base = bestNumber;
+      total += Math.round(base * mult);
+    }
+    maxGain = Math.max(maxGain, total);
+  }
+
+  // Strategy B: always best CHAIN tile (no bonus)
+  if (bestChain !== null) {
+    let mult = 1;
+    let chainCount = 0;
+    let total = 0;
+    for (let i = 0; i < turns; i++) {
+      const factor = 1 + chainCount * 0.35;
+      const base = Math.round(bestChain * factor);
+      total += Math.round(base * mult);
+      chainCount += 1;
+    }
+    maxGain = Math.max(maxGain, total);
+  }
+
+  // Strategy C: some early BONUS turns to pump multiplier, then CHAIN
+  if (bestChain !== null && bestBonus !== null) {
+    const maxSetupTurns = Math.min(5, turns); // don't go crazy, just a few
+    for (let setup = 1; setup <= maxSetupTurns; setup++) {
+      let mult = 1;
+      let chainCount = 0;
+      let total = 0;
+
+      for (let t = 0; t < turns; t++) {
+        if (t < setup) {
+          // BONUS turn: small points, boost multiplier
+          const base = 1;
+          total += Math.round(base * mult);
+          mult = parseFloat((mult + bestBonus * 0.25).toFixed(2));
+        } else {
+          // CHAIN turn with boosted multiplier and chainCount
+          const factor = 1 + chainCount * 0.35;
+          const base = Math.round(bestChain * factor);
+          total += Math.round(base * mult);
+          chainCount += 1;
+        }
+      }
+
+      maxGain = Math.max(maxGain, total);
+    }
+  }
+
+  // Strategy D: always best positive RISK tile (if any)
+  if (bestRiskPos !== null) {
+    let mult = 1;
+    let total = 0;
+    for (let i = 0; i < turns; i++) {
+      const base = bestRiskPos;
+      total += Math.round(base * mult);
+    }
+    maxGain = Math.max(maxGain, total);
+  }
+
+  return maxGain;
+}
+
+/**
+ * Generate a "fair" grid for a given level: reroll until
+ * the theoretical best-case gain is at least the requiredGain
+ * for that level. Never lowers the target.
+ */
+function generateFairGrid(level) {
+  const { turns } = getDifficultyForLevel(level);
+  const requiredGain = getRequiredGainForLevel(level);
+  let grid;
+  let tries = 0;
+
+  do {
+    grid = generateGrid(level);
+    tries++;
+    const maxPossible = computeMaxPossibleGain(grid, turns);
+
+    // If this grid is capable of reaching the required gain, or we've tried
+    // too many times (safety cap), accept it.
+    if (maxPossible >= requiredGain || tries >= 30) {
+      break;
+    }
+  } while (true);
+
+  return grid;
+}
+
 function resetTimer() {
   if (timerInterval) {
     clearInterval(timerInterval);
@@ -150,6 +287,8 @@ function setNameWarningActive(active) {
 
 function startGame() {
   const level = 1;
+  const diff = getDifficultyForLevel(level);
+  const fairGrid = generateFairGrid(level);
 
   // New run → clear current run leaderboard tracking
   currentRunScoreId = null;
@@ -158,15 +297,15 @@ function startGame() {
   gameState = {
     level,
     turnIndex: 0,
-    turns: getDifficultyForLevel(level).turns,
+    turns: diff.turns,
     score: 0,
     scoreAtLevelStart: 0,
     missedTurns: 0,
     multiplier: 1,
     chainCount: 0,
     lastTileDelta: 0,
-    grid: generateGrid(level),
-    timePerTurnMs: getDifficultyForLevel(level).timePerTurnMs,
+    grid: fairGrid,
+    timePerTurnMs: diff.timePerTurnMs,
     locked: false,
   };
 
@@ -184,21 +323,24 @@ function startGame() {
   nextTurn();
 }
 
+
 function startLevel(level) {
   const prevScore = gameState ? gameState.score : 0;
+  const diff = getDifficultyForLevel(level);
+  const fairGrid = generateFairGrid(level);
 
   gameState = {
     level,
     turnIndex: 0,
-    turns: getDifficultyForLevel(level).turns,
+    turns: diff.turns,
     score: prevScore,             // cumulative
     scoreAtLevelStart: prevScore, // baseline for this level
     missedTurns: 0,
     multiplier: 1,
     chainCount: 0,
     lastTileDelta: 0,
-    grid: generateGrid(level),
-    timePerTurnMs: getDifficultyForLevel(level).timePerTurnMs,
+    grid: fairGrid,
+    timePerTurnMs: diff.timePerTurnMs,
     locked: false,
   };
 
@@ -215,6 +357,7 @@ function startLevel(level) {
 
   nextTurn();
 }
+
 
 function nextTurn() {
   if (!gameState) return;
