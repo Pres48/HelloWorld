@@ -30,7 +30,7 @@ const levelGoalsInfoPopover = document.getElementById("levelGoalsInfoPopover");
 const leaderboardInfoBtn = document.getElementById("leaderboardInfoBtn");
 const leaderboardInfoPopover = document.getElementById("leaderboardInfoPopover");
 
-const MIN_SUBMIT_SCORE = 200; // minimum score required to submit to global leaderboard
+const MIN_SUBMIT_SCORE = 2000; // minimum score required to submit to global leaderboard
 const HIGH_SCORE_NAME_WARN_THRESHOLD = MIN_SUBMIT_SCORE;
 
 let gameState = null;
@@ -614,6 +614,12 @@ function init() {
   restartButton.disabled = true;
   endButton.disabled = true;
   saveScoreButton.disabled = true;
+  
+  // --- NEW: dynamically update popover leaderboard minimum ---
+  const minScoreSpan = document.getElementById("leaderboardMinScore");
+  if (minScoreSpan) {
+    minScoreSpan.textContent = MIN_SUBMIT_SCORE.toLocaleString();
+  }
 
   // Initial Level 1 goals before the first game starts
   if (levelGoals) {
@@ -693,6 +699,8 @@ function init() {
       togglePopover(leaderboardInfoPopover);
     };
   }
+
+
 
   // Click anywhere else closes all
   document.addEventListener("click", () => {
