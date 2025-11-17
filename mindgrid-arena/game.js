@@ -32,6 +32,55 @@ function randomInt(min, max) {
   return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 
+// ---- LEVEL BEHAVIOR / DIFFICULTY FLAGS ----
+
+// This describes how tiles should *display* and behave at a given level.
+// You can tune these thresholds however you like.
+export function getLevelBehavior(level) {
+  const behavior = {
+    // Visual labels like "NUM", "CHAIN" on tiles
+    showNumberChainLabels: true,   // for NUMBER + CHAIN
+    showOtherLabels: true,         // for BONUS + RISK
+
+    // Equation display probabilities (0–1)
+    // Applied only to NUMBER + CHAIN tiles
+    equationChance: 0,             // e.g., 0.25 = 25% of eligible tiles
+    multiStepEquationChance: 0,    // chance that an equation has 2–3 ops
+
+    // Risk tile display
+    hideRiskValues: false,         // if true, show "???" instead of value
+
+    // Board reshuffle
+    shuffleEachTurn: false,        // if true, grid gets shuffled each turn
+  };
+
+  // --- EXAMPLE TUNING (all commented out so behavior is unchanged for now) ---
+  /*
+  if (level >= 5) {
+    behavior.equationChance = 0.15; // start sprinkling equations
+  }
+  if (level >= 10) {
+    behavior.equationChance = 0.25;
+  }
+  if (level >= 15) {
+    behavior.showNumberChainLabels = false; // remove NUM/CHAIN labels
+  }
+  if (level >= 20) {
+    behavior.hideRiskValues = true; // risk becomes "???"
+  }
+  if (level >= 25) {
+    behavior.equationChance = 0.5;
+    behavior.multiStepEquationChance = 0.3;
+  }
+  if (level >= 30) {
+    behavior.shuffleEachTurn = true;
+  }
+  */
+
+  return behavior;
+}
+
+
 /**
  * Compute difficulty parameters for a given level.
  */
