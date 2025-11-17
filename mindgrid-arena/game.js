@@ -37,6 +37,7 @@ function randomInt(min, max) {
 // This describes how tiles should *display* and behave at a given level.
 // You can tune these thresholds however you like.
 export function getLevelBehavior(level) {
+  // Base behavior (Level 1)
   const behavior = {
     // Visual labels like "NUM", "CHAIN" on tiles
     showNumberChainLabels: true,   // for NUMBER + CHAIN
@@ -44,8 +45,8 @@ export function getLevelBehavior(level) {
 
     // Equation display probabilities (0–1)
     // Applied only to NUMBER + CHAIN tiles
-    equationChance: 0,             // e.g., 0.25 = 25% of eligible tiles
-    multiStepEquationChance: 0,    // chance that an equation has 2–3 ops
+    equationChance: 0,             // 0 = never
+    multiStepEquationChance: 0,    // 0 = only simple equations
 
     // Risk tile display
     hideRiskValues: false,         // if true, show "???" instead of value
@@ -54,31 +55,100 @@ export function getLevelBehavior(level) {
     shuffleEachTurn: false,        // if true, grid gets shuffled each turn
   };
 
-  // --- EXAMPLE TUNING (all commented out so behavior is unchanged for now) ---
-  /*
-  if (level >= 5) {
-    behavior.equationChance = 0.15; // start sprinkling equations
+  // ---------------------------
+  // TIER 1 – Onboarding (L1–4)
+  // ---------------------------
+  // Pure numeric, full labels, no tricks.
+  if (level <= 4) {
+    return behavior;
   }
-  if (level >= 10) {
-    behavior.equationChance = 0.25;
+
+  // ----------------------------------
+  // TIER 2 – Light equations (L5–8)
+  // ----------------------------------
+  // Start sprinkling equations on NUMBER / CHAIN tiles, but keep labels
+  if (level <= 8) {
+    behavior.equationChance = 0.18;       // ~18% of number/chain tiles show as equations
+    behavior.multiStepEquationChance = 0; // only single-op: "10+7", "4×3", etc.
+    return behavior;
   }
-  if (level >= 15) {
-    behavior.showNumberChainLabels = false; // remove NUM/CHAIN labels
+
+  // -----------------------------------------
+  // TIER 3 – More equations (L9–12)
+  // -----------------------------------------
+  // Mental load increases, still readable.
+  if (level <= 12) {
+    behavior.equationChance = 0.30;       // 30% of number/chain tiles as equations
+    behavior.multiStepEquationChance = 0.10; // ~10% of those become 2–3 term equations
+    return behavior;
   }
-  if (level >= 20) {
-    behavior.hideRiskValues = true; // risk becomes "???"
+
+  // ------------------------------------------------
+  // TIER 4 – Riskier & mathier (L13–16)
+  // ------------------------------------------------
+  // More equations, occasional multi-step, risk starts getting obscured later.
+  if (level <= 16) {
+    behavior.equationChance = 0.42;
+    behavior.multiStepEquationChance = 0.18;
+
+    // At 15+ we start hiding risk values: pure “feel” choices
+    if (level >= 15) {
+      behavior.hideRiskValues = true; // risk tiles show "???"
+    }
+
+    return behavior;
   }
-  if (level >= 25) {
-    behavior.equationChance = 0.5;
-    behavior.multiStepEquationChance = 0.3;
+
+  // ----------------------------------------------------------
+  // TIER 5 – Pattern recognition challenge (L17–20)
+  // ----------------------------------------------------------
+  // Remove NUM/CHAIN labels; you rely on colors + equation format.
+  if (level <= 20) {
+    behavior.equationChance = 0.55;
+    behavior.multiStepEquationChance = 0.28;
+
+    behavior.showNumberChainLabels = false; // tiles still colored, but no "NUM"/"CHAIN"
+    behavior.hideRiskValues = true;        // risk stays hidden
+
+    return behavior;
   }
-  if (level >= 30) {
-    behavior.shuffleEachTurn = true;
+
+  // ------------------------------------------------------
+  // TIER 6 – Advanced play (L21–30)
+  // ------------------------------------------------------
+  // Higher equation density, more multi-step, optional board shuffle at 26+.
+  if (level <= 30) {
+    behavior.equationChance = 0.65;
+    behavior.multiStepEquationChance = 0.35;
+
+    behavior.showNumberChainLabels = false;
+    behavior.hideRiskValues = true;
+
+    if (level >= 26) {
+      behavior.shuffleEachTurn = true; // grid layout scrambles between turns
+    }
+
+    return behavior;
   }
-  */
+
+  // ------------------------------------------------------
+  // TIER 7 – Expert / “endless” (L31+)
+  // ------------------------------------------------------
+  // This is where grinders live. Very dense equations, frequent multi-step,
+  // shuffled boards, risk hidden, NUM/CHAIN labels gone.
+  behavior.equationChance = 0.75;          // 3/4 of number/chain tiles are equations
+  behavior.multiStepEquationChance = 0.45; // almost half of those are multi-step
+
+  behavior.showNumberChainLabels = false;
+  behavior.hideRiskValues = true;
+  behavior.shuffleEachTurn = true;
+
+  // You *could* also hide BONUS/RISK labels here if you want true chaos:
+  // behavior.showOtherLabels = false;
 
   return behavior;
 }
+
 
 
 /**
