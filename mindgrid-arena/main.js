@@ -608,6 +608,18 @@ function init() {
   endButton.onclick = endGame;
   saveScoreButton.onclick = handleSaveScore;
 
+  // Accordion for How to Play
+  const howToPlayToggle = document.getElementById("howToPlayToggle");
+  const howToPlayContent = document.getElementById("howToPlayContent");
+  const howToPlayArrow = document.getElementById("howToPlayArrow");
+  
+  if (howToPlayToggle && howToPlayContent && howToPlayArrow) {
+    howToPlayToggle.onclick = () => {
+      const open = howToPlayContent.classList.toggle("open");
+      howToPlayArrow.classList.toggle("open", open);
+    };
+  }
+
   // Initial UI state
   bestScoreDisplay.textContent = "–";
   bestLevelDisplay.textContent = "–";
