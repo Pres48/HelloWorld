@@ -1,5 +1,11 @@
 // main.js
-import { generateGrid, getDifficultyForLevel, resolveTileSelection } from "./game.js";
+import {
+  generateGrid,
+  getDifficultyForLevel,
+  resolveTileSelection,
+  getLevelBehavior,
+} from "./game.js";
+
 import { saveScoreToSupabase, fetchTopScores } from "./supabaseClient.js";
 
 const gridContainer = document.getElementById("gridContainer");
@@ -55,6 +61,113 @@ function escapeHtml(str) {
       default: return c;
     }
   });
+}
+
+// ---- TILE DISPLAY HELPERS (equations, hiding risk, labels) ----
+
+// Make a simple or multi-step equation string that evaluates to `value`
+function makeEquationString(value, multiStepChance = 0) {
+  // Guard against weird values
+  if (!Number.isFinite(value)) return String(value);
+
+  // Maybe do a multi-step equation
+  if (multiStepChance > 0 && Math.random() < multiStepChance) {
+    // Simple pattern: a + b - c = value
+    // Ensure all integers, keep it readable
+    const a = Math.max(1, Math.floor(value * 0.4));
+    const b = Math.max(1, Math.floor(value * 0.8) - a);
+    const c = a + b - value; // ensures equality
+
+    if (Number.isInteger(c) && c >= 0) {
+      // e.g. "10 + 7 - 3"
+      return `${a} + ${b} - ${c}`;
+    }
+  }
+
+  // Single-op equation: pick from +, -, ×, ÷
+  const ops = ["add", "sub", "mul", "div"];
+  const op = ops[Math.floor(Math.random() * ops.length)];
+
+  if (op === "add") {
+    const a = Math.max(1, Math.floor(value / 2));
+    const b = value - a;
+    return `${a} + ${b}`;
+  }
+
+  if (op === "sub") {
+    const a = value + Math.max(1, Math.floor(value / 3));
+    const b = a - value;
+    return `${a} - ${b}`;
+  }
+
+  if (op === "mul" && value >= 4) {
+    // find a small factor
+    for (let i = 2; i <= Math.sqrt(value); i++) {
+      if (value % i === 0) {
+        const a = i;
+        const b = value / i;
+        return `${a} × ${b}`;
+      }
+    }
+  }
+
+  if (op === "div" && value >= 4) {
+    const b = Math.max(2, Math.floor(value / 2));
+    const a = value * b;
+    return `${a} ÷ ${b}`;
+  }
+
+  // Fallback: plain value
+  return String(value);
+}
+
+// Given a tile + behavior, decide what to show as the *value text*
+function formatTileDisplay(tile, behavior) {
+  const type = tile.type;
+  const v = tile.value;
+
+  // Hide RISK value entirely if configured
+  if (type === "risk" && behavior.hideRiskValues) {
+    return "???";
+  }
+
+  // Equations only for number/chain tiles
+  const allowEquation = type === "number" || type === "chain";
+  if (
+    allowEquation &&
+    behavior.equationChance > 0 &&
+    Math.random() < behavior.equationChance
+  ) {
+    return makeEquationString(v, behavior.multiStepEquationChance || 0);
+  }
+
+  // Otherwise just show the raw number
+  return String(v);
+}
+
+// Simple in-place shuffle for a square grid [row][col]
+function shuffleGridInPlace(grid) {
+  if (!grid || !grid.length) return;
+  const flat = [];
+  grid.forEach((row) => row.forEach((tile) => flat.push(tile)));
+
+  // Fisher–Yates
+  for (let i = flat.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [flat[i], flat[j]] = [flat[j], flat[i]];
+  }
+
+  const size = grid.length; // square grid
+  let idx = 0;
+  for (let r = 0; r < size; r++) {
+    for (let c = 0; c < size; c++) {
+      const t = flat[idx++];
+      t.row = r;
+      t.col = c;
+      t.id = `${r}-${c}`;
+      grid[r][c] = t;
+    }
+  }
 }
 
 
@@ -358,25 +471,27 @@ function setNameWarningActive(active) {
 
 function startGame() {
   const level = 1;
-  const diff = getDifficultyForLevel(level);
-  const fairGrid = generateFairGrid(level);
 
   // New run → clear current run leaderboard tracking
   currentRunScoreId = null;
   currentRunSavedScore = 0;
 
+  const difficulty = getDifficultyForLevel(level);
+  const behavior = getLevelBehavior(level);
+
   gameState = {
     level,
     turnIndex: 0,
-    turns: diff.turns,
+    turns: difficulty.turns,
     score: 0,
     scoreAtLevelStart: 0,
     missedTurns: 0,
     multiplier: 1,
     chainCount: 0,
     lastTileDelta: 0,
-    grid: fairGrid,
-    timePerTurnMs: diff.timePerTurnMs,
+    grid: generateGrid(level),
+    timePerTurnMs: difficulty.timePerTurnMs,
+    behavior,          // ⬅️ store it
     locked: false,
   };
 
@@ -397,21 +512,23 @@ function startGame() {
 
 function startLevel(level) {
   const prevScore = gameState ? gameState.score : 0;
-  const diff = getDifficultyForLevel(level);
-  const fairGrid = generateFairGrid(level);
+
+  const difficulty = getDifficultyForLevel(level);
+  const behavior = getLevelBehavior(level);
 
   gameState = {
     level,
     turnIndex: 0,
-    turns: diff.turns,
+    turns: difficulty.turns,
     score: prevScore,             // cumulative
     scoreAtLevelStart: prevScore, // baseline for this level
     missedTurns: 0,
     multiplier: 1,
     chainCount: 0,
     lastTileDelta: 0,
-    grid: fairGrid,
-    timePerTurnMs: diff.timePerTurnMs,
+    grid: generateGrid(level),
+    timePerTurnMs: difficulty.timePerTurnMs,
+    behavior,                     // ⬅️ store it
     locked: false,
   };
 
@@ -432,6 +549,14 @@ function startLevel(level) {
 
 function nextTurn() {
   if (!gameState) return;
+
+  const behavior = gameState.behavior || getLevelBehavior(gameState.level);
+
+  // Optional: shuffle grid each turn for higher levels
+  if (behavior.shuffleEachTurn) {
+    shuffleGridInPlace(gameState.grid);
+    renderGrid();
+  }
 
   if (gameState.turnIndex >= gameState.turns) {
     endRound(); // normal end of level
@@ -493,7 +618,9 @@ function setTilesDisabled(disabled) {
 function renderGrid() {
   gridContainer.innerHTML = "";
   if (!gameState) return;
-  const { grid } = gameState;
+  const { grid, behavior: storedBehavior } = gameState;
+
+  const behavior = storedBehavior || getLevelBehavior(gameState.level);
 
   const size = grid.length;
   gridContainer.style.gridTemplateColumns = `repeat(${size}, minmax(0, 1fr))`;
@@ -509,18 +636,26 @@ function renderGrid() {
       const valueEl = document.createElement("span");
       valueEl.className = "tile-value";
 
+      // Decide whether to show labels
+      const isNumberOrChain = tile.type === "number" || tile.type === "chain";
+      const showLabel =
+        (isNumberOrChain && behavior.showNumberChainLabels) ||
+        (!isNumberOrChain && behavior.showOtherLabels);
+
       if (tile.type === "number") {
-        label.textContent = "NUM";
-        valueEl.textContent = `${tile.value}`;
+        if (showLabel) label.textContent = "NUM";
+        valueEl.textContent = formatTileDisplay(tile, behavior);
       } else if (tile.type === "bonus") {
-        label.textContent = "BONUS";
+        if (showLabel) label.textContent = "BONUS";
+        // Bonus tiles still show multiplier, not equations
         valueEl.textContent = `+x${(tile.value * 0.25).toFixed(2)}`;
       } else if (tile.type === "chain") {
-        label.textContent = "CHAIN";
-        valueEl.textContent = `${tile.value}`;
+        if (showLabel) label.textContent = "CHAIN";
+        valueEl.textContent = formatTileDisplay(tile, behavior);
       } else if (tile.type === "risk") {
-        label.textContent = "RISK";
-        valueEl.textContent = `${tile.value}`;
+        if (showLabel) label.textContent = "RISK";
+        // Risk may hide value based on behavior
+        valueEl.textContent = formatTileDisplay(tile, behavior);
       }
 
       tileEl.appendChild(label);
@@ -532,6 +667,7 @@ function renderGrid() {
     });
   });
 }
+
 
 function onTileClick(tile) {
   if (!gameState || gameState.locked) return;
