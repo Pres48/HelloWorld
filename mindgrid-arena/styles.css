@@ -259,6 +259,50 @@ body {
   gap: 10px;
 }
 
+/* Ensure the panel can host an absolute overlay */
+.game-panel {
+  position: relative;
+}
+
+/* Fireworks overlay across the whole game panel */
+.fireworks-overlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+  z-index: 5;
+  display: none;
+}
+
+/* Shown while fireworks are active */
+.fireworks-overlay.active {
+  display: block;
+}
+
+/* Individual particles */
+.firework-particle {
+  position: absolute;
+  width: 5px;
+  height: 5px;
+  border-radius: 999px;
+  background: #facc15;
+  opacity: 0;
+  animation: fireworkBurst 700ms ease-out forwards;
+}
+
+/* Burst animation using CSS custom properties for direction */
+@keyframes fireworkBurst {
+  0% {
+    transform: translate(0, 0) scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(var(--dx), var(--dy)) scale(0.4);
+    opacity: 0;
+  }
+}
+
+
 /* Stats */
 
 .stats-row {
