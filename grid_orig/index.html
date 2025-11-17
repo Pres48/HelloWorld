@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MindGrid Arena</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="app">
+    <header class="top-bar">
+      <div class="brand">
+        <span class="logo-dot"></span>
+        <span class="brand-title">MindGrid Arena</span>
+      </div>
+      
+      <div class="player-info">
+        <label class="player-info-label">
+          Name:
+          <input id="playerNameInput" type="text" placeholder="Your name" />
+        </label>
+      
+        <div class="player-info-helper" id="playerNameHelper">
+          This name will appear on the public leaderboard.
+        </div>
+      </div>
+    </header>
+
+    <main class="game-layout">
+      <section class="game-panel">
+        <div class="stats-row">
+          <div class="stat">
+            <span class="label">Level</span>
+            <span class="value" id="levelDisplay">1</span>
+          </div>
+          <div class="stat">
+            <span class="label">Turn</span>
+            <span class="value" id="turnDisplay">0 / 0</span>
+          </div>
+          <div class="stat">
+            <span class="label">Score</span>
+            <span class="value" id="scoreDisplay">0</span>
+          </div>
+          <div class="stat">
+            <span class="label">Multiplier</span>
+            <span class="value" id="multiplierDisplay">x1.0</span>
+          </div>
+          <div class="stat">
+            <span class="label">Last Move</span>
+            <span class="value" id="lastMoveDisplay">0</span>
+          </div>
+        </div>
+        
+        <div class="timer-bar">
+          <div class="timer-fill" id="timerFill"></div>
+        </div>
+
+        <div class="message-controls-row">
+          <div class="message" id="messageArea">
+            Click "Start Game" to begin.
+          </div>
+        
+          <div class="controls-row">
+            <button id="startButton">Start Game</button>
+            <button id="endButton" class="secondary">End Game</button>
+            <button id="restartButton" class="secondary">Restart</button>
+          </div>
+        </div>
+        
+        <div class="level-goals-header">
+          <span class="level-goals-label">Level Goals</span>
+        
+          <button
+            type="button"
+            class="info-icon"
+            id="levelGoalsInfoBtn"
+            aria-label="More info about level goals"
+          >?</button>
+        
+          <span class="level-goals-separator">|</span>
+        
+          <span class="level-goals-text" id="levelGoals"></span>
+        
+          <div class="info-popover" id="levelGoalsInfoPopover">
+            <strong>How level goals are calculated</strong>
+            <p>Each level currently has <strong>one requirement</strong>:</p>
+            <ul>
+              <li>Your <strong>score gain this level</strong> must meet or beat the Level target.</li>
+            </ul>
+            <p>
+              Missed turns still hurt your score (you lose chances to earn points),
+              but they <strong>no longer end the run by themselves</strong>.
+            </p>
+            <p>
+              Higher levels require bigger gains and give you less time per move.
+            </p>
+          </div>
+          
+        </div>
+        
+        <div class="grid" id="gridContainer">
+          <!-- tiles injected by JS -->
+        </div>
+
+        <!-- 🔥 Fireworks overlay -->
+        <div class="fireworks-overlay" id="fireworksOverlay"></div>
+
+      </section>
+
+      <aside class="side-panel">
+        <!-- HOW TO PLAY -->
+<section class="panel-block how-to-play-block">
+  <!-- Accordion header row: title + ? + arrow -->
+  <div class="accordion-header" id="howToPlayToggle">
+    <div class="panel-header-with-icon">
+      <h2>How to Play</h2>
+      <button
+        type="button"
+        class="info-icon"
+        id="howToPlayInfoBtn"
+        aria-label="More info about how levels work"
+      >
+        ?
+      </button>
+      <div class="info-popover" id="howToPlayInfoPopover">
+        <strong>Level &amp; difficulty details</strong>
+        <ul>
+          <li>Levels 1–4: 8 turns per level</li>
+          <li>Levels 5–9: 9 turns per level</li>
+          <li>Levels 10–14: 10 turns per level</li>
+          <li>Levels 15–19: 11 turns per level</li>
+          <li>Level 20+: 12 turns per level</li>
+        </ul>
+        <p>As levels go up, you also get:</p>
+        <ul>
+          <li><strong>Less time per move</strong></li>
+          <li><strong>Tougher score targets</strong> required to advance</li>
+          <li><strong>Stricter limits on missed turns</strong></li>
+        </ul>
+      </div>
+    </div>
+
+    <span class="accordion-icon" id="howToPlayArrow">▸</span>
+  </div>
+
+  <!-- Collapsible body -->
+  <div class="accordion-content" id="howToPlayContent">
+    <p>
+      Each level is a series of fast turns. On every turn you must click
+      <strong>exactly one tile</strong> before the bar runs out.
+    </p>
+    <p>
+      Your <strong>score for a turn</strong> is:
+      <br />
+      <code>tile points × current multiplier</code>
+    </p>
+    <p>
+      Different tiles change your points and multiplier in different ways:
+    </p>
+    <ul class="bullet-list">
+      <li>
+        <strong>Blue – Number</strong>: gives base points (shown on the tile),
+        multiplied by your current multiplier.
+      </li>
+      <li>
+        <strong>Yellow – Bonus</strong>: small points, but
+        <strong>raises your multiplier</strong> for future turns.
+      </li>
+      <li>
+        <strong>Green – Chain</strong>: gives more points when you pick them
+        on <strong>consecutive turns</strong>. Each chain in a row is worth more.
+      </li>
+      <li>
+        <strong>Red – Risk</strong>: can be big positive or negative. Negative
+        values can <strong>lower your multiplier</strong>.
+      </li>
+    </ul>
+    <p>
+      Missing a turn (no click in time) gives <strong>0 points</strong> and
+      breaks any active chain.
+    </p>
+    <p>
+      As levels go up, you get <strong>less time per move</strong>,
+      <strong>more turns</strong>, and <strong>trickier boards</strong>.
+    </p>
+  </div>
+</section>
+
+
+        <!-- HIGH SCORE (LOCAL BEST) -->
+          <section class="panel-block">
+            <h2>Session High Score</h2>
+            <p class="soft-text" style="margin-bottom: 4px;">
+              Best run in this browser session.
+            </p>
+            <div id="highScoreBox" class="highscore-box">
+              <div class="highscore-row">
+                <span class="label">Best Score:</span>
+                <span class="value" id="bestScoreDisplay">–</span>
+              </div>
+              <div class="highscore-row">
+                <span class="label">Best Level:</span>
+                <span class="value" id="bestLevelDisplay">–</span>
+              </div>
+              <button id="saveScoreButton" class="secondary" disabled>Retry Save</button>
+              <p id="saveStatus" class="save-status"></p>
+            </div>
+          </section>
+
+      
+        <!-- GLOBAL LEADERBOARD (SUPABASE) -->
+          <section class="panel-block">
+            <div class="panel-header-with-icon">
+              <h2>Leaderboard</h2>
+              <button
+                type="button"
+                class="info-icon"
+                id="leaderboardInfoBtn"
+                aria-label="More info about the leaderboard"
+              >
+                ?
+              </button>
+              <div class="info-popover" id="leaderboardInfoPopover">
+                <strong>How the leaderboard works</strong>
+                <ul>
+                  <li>
+                    Scores are based on your <strong>total run</strong> (all levels in one run).
+                  </li>
+                  <li>
+                    You must score at least 
+                    <strong><span id="leaderboardMinScore"></span> points</strong>
+                    in a run to appear here.
+                  </li>
+                  <li>
+                    Higher <strong>score</strong> beats lower, ties broken by
+                    <strong>higher level reached</strong>.
+                  </li>
+                  <li>
+                    Your best runs are <strong>auto-saved</strong> at the end of a level or when a run ends.
+                  </li>
+                </ul>
+              </div>
+            </div>
+          
+            <div id="leaderboardList" class="leaderboard-list">
+              <p class="soft-text">Loading…</p>
+            </div>
+          </section>
+      </aside>
+
+    </main>
+  </div>
+
+  <script type="module" src="main.js"></script>
+</body>
+</html>
