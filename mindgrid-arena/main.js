@@ -482,11 +482,19 @@ function endRound(reason = "normal") {
       `You earned ${levelGain.toLocaleString()} points this level ` +
       `(${missed} missed turn${missed === 1 ? "" : "s"}).`;
 
+    // --- Show NEXT level requirements right now ---
+    const nextLevel = level + 1;
+    const targetNext = getRequiredGainForLevel(nextLevel);
+    const maxMissNext = getAllowedMissesForLevel(nextLevel);
+    levelGoals.textContent =
+      `Level ${nextLevel} target: +${targetNext.toLocaleString()} pts, ` +
+      `Max misses: ${maxMissNext}`;
+
+    // Prepare the button for next level
     startButton.disabled = false;
     startButton.textContent = "Play Next Level";
 
     startButton.onclick = () => {
-      const nextLevel = level + 1;
       startLevel(nextLevel);
     };
   } else {
