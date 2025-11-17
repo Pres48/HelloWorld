@@ -436,8 +436,8 @@ function endRound(reason = "normal") {
 
   // If player chose End Game, always treat as run over
   if (reason === "quit") {
-    messageArea.textContent =
-      `Run ended by player at Level ${level}. ` +
+    messageArea.innerHTML =
+      `<strong>Run ended by player at Level ${level}.</strong> ` +
       `Final score: ${finalScore.toLocaleString()}.`;
 
     startButton.disabled = false;
@@ -450,8 +450,9 @@ function endRound(reason = "normal") {
 
   if (passedScoreGate && passedMissGate) {
     // Level cleared – allow NEXT level
-    messageArea.textContent =
-      `Level ${level} cleared! You earned ${levelGain.toLocaleString()} points this level ` +
+    messageArea.innerHTML =
+      `<strong>Level ${level} cleared!</strong> ` +
+      `You earned ${levelGain.toLocaleString()} points this level ` +
       `(${missed} missed turn${missed === 1 ? "" : "s"}).`;
 
     startButton.disabled = false;
@@ -471,8 +472,9 @@ function endRound(reason = "normal") {
       reasonText += `Too many missed turns (allowed ${allowedMisses}, you had ${missed}).`;
     }
 
-    messageArea.textContent =
-      `Run over at Level ${level}. Final score: ${finalScore.toLocaleString()}. ${reasonText}`;
+    messageArea.innerHTML =
+      `<strong>Run over at Level ${level}.</strong> ` +
+      `Final score: ${finalScore.toLocaleString()}. ${reasonText}`;
 
     startButton.disabled = false;
     startButton.textContent = "Start Game";
