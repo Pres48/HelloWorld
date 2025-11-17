@@ -688,39 +688,77 @@ function triggerFireworks() {
   overlay.innerHTML = "";
   overlay.classList.add("active");
 
-  const particleCount = 45;
-  const colors = ["#f97316", "#facc15", "#22c55e", "#38bdf8", "#a855f7", "#f97373"];
+  const burstCount = 4; // number of distinct bursts
+  const particlesPerBurst = 26; // per burst
+  const colors = [
+    "#f97316", // orange
+    "#facc15", // yellow
+    "#22c55e", // green
+    "#38bdf8", // blue
+    "#a855f7", // purple
+    "#f97373", // red
+  ];
 
-  for (let i = 0; i < particleCount; i++) {
-    const p = document.createElement("span");
-    p.className = "firework-particle";
+  const allDurations = [];
 
-    // Random direction + distance
-    const angle = Math.random() * Math.PI * 2;
-    const distance = 60 + Math.random() * 100; // 60–160px
+  for (let b = 0; b < burstCount; b++) {
+    // Random center for each burst (keep mostly in the middle)
+    const centerX = 25 + Math.random() * 50; // % across width
+    const centerY = 30 + Math.random() * 40; // % down height
 
-    const dx = Math.cos(angle) * distance;
-    const dy = Math.sin(angle) * distance;
+    for (let i = 0; i < particlesPerBurst; i++) {
+      const p = document.createElement("span");
+      p.className = "firework-particle";
 
-    p.style.setProperty("--dx", `${dx}px`);
-    p.style.setProperty("--dy", `${dy}px`);
+      // Random radial direction
+      const angle = Math.random() * Math.PI * 2;
+      const distance = 90 + Math.random() * 130; // 90–220px
 
-    // Center of panel (you could bias toward grid if you want)
-    p.style.left = "50%";
-    p.style.top = "50%";
+      const dx = Math.cos(angle) * distance;
+      const dy = Math.sin(angle) * distance;
 
-    // Color cycle
-    p.style.background = colors[i % colors.length];
+      p.style.setProperty("--dx", `${dx}px`);
+      p.style.setProperty("--dy", `${dy}px`);
 
-    overlay.appendChild(p);
+      // Random size
+      const size = 7 + Math.random() * 7; // 7–14px
+      p.style.width = `${size}px`;
+      p.style.height = `${size}px`;
+
+      // Color glow variant
+      const color = colors[(b + i) % colors.length];
+      p.style.background = color;
+      p.style.boxShadow = `
+        0 0 8px ${color},
+        0 0 18px ${color}AA,
+        0 0 26px ${color}77
+      `;
+
+      // Random duration & delay for more organic feel
+      const duration = 750 + Math.random() * 350; // 750–1100ms
+      const delay = Math.random() * 200 + b * 100; // stagger bursts slightly
+
+      p.style.animationDuration = `${duration}ms`;
+      p.style.animationDelay = `${delay}ms`;
+
+      allDurations.push(duration + delay);
+
+      // Place at the chosen burst center
+      p.style.left = `${centerX}%`;
+      p.style.top = `${centerY}%`;
+
+      overlay.appendChild(p);
+    }
   }
 
-  // Turn off after animation completes
+  // Turn off overlay after the longest particle finishes
+  const maxTotal = Math.max(...allDurations);
   setTimeout(() => {
     overlay.classList.remove("active");
     overlay.innerHTML = "";
-  }, 750);
+  }, maxTotal + 200);
 }
+
 
 
 // ---------- End of Round & Progression ----------
