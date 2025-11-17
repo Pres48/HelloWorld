@@ -884,7 +884,8 @@ async function loadLeaderboard() {
         const mins = d.getMinutes().toString().padStart(2, "0");
         const ampm = hours >= 12 ? "p" : "a";
         hours = hours % 12 || 12;
-        timeText = `${month}/${day} ${hours}:${mins}${ampm}`;
+        // timeText = `${month}/${day} ${hours}:${mins}${ampm}`;
+        timeText = `${month}/${day}`;
       }
 
       div.innerHTML = `
@@ -892,8 +893,8 @@ async function loadLeaderboard() {
         <span class="entry-name">${safeName}</span>
         <span class="entry-score">${score.toLocaleString()}</span>
         <span class="entry-level">Lv ${lvl}</span>
+        <span class="entry-time">${timeText}</span>
       `;
-        // <span class="entry-time">${timeText}</span>
       
       fragment.appendChild(div);
     });
