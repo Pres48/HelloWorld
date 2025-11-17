@@ -114,17 +114,66 @@ function isNameProfane(name) {
 
 
 // Required performance per level
+// function getRequiredGainForLevel(level) {
+//  const base = 80;   // level 1 requirement
+//  const perLevel = 30;
+//  return base + (level - 1) * perLevel;
+// }
+
+// Curved difficulty for required points per *level*.
+// Idea:
+// - Levels 1–5: gentle onboarding
+// - 6–10: steady climb
+// - 11–15: mid-game challenge
+// - 16–20: late-game push
+// - 21+: flattens with a soft curve so pros can reach very high levels
 function getRequiredGainForLevel(level) {
-  const base = 80;   // level 1 requirement
-  const perLevel = 30;
-  return base + (level - 1) * perLevel;
+  if (level <= 0) return 0;
+
+  // 1–5: 80, 95, 110, 125, 140
+  if (level <= 5) {
+    return 80 + 15 * (level - 1);
+  }
+
+  // 6–10: 160, 180, 200, 220, 240
+  if (level <= 10) {
+    return 160 + 20 * (level - 6);
+  }
+
+  // 11–15: 270, 295, 320, 345, 370
+  if (level <= 15) {
+    return 270 + 25 * (level - 11);
+  }
+
+  // 16–20: 400, 430, 460, 490, 520
+  if (level <= 20) {
+    return 400 + 30 * (level - 16);
+  }
+
+  // 21+: slowly rising curve, but not crazy.
+  // Requirements hover in the ~550–700+ range so
+  // high-level players are challenged but not hard-capped.
+  const extra = level - 20;
+  const baseAfter20 = 550; // roughly just above Level 20 requirement
+  const step = 35;         // how steep the tail gets
+
+  // use log2 for diminishing growth: big jump at first, then flatter
+  const gain = baseAfter20 + step * Math.log2(1 + extra);
+  return Math.round(gain);
 }
 
+
+// function getAllowedMissesForLevel(level) {
+//  if (level <= 3) return 3;
+//  if (level <= 6) return 2;
+//  return 1;
+// }
+
 function getAllowedMissesForLevel(level) {
-  if (level <= 3) return 3;
-  if (level <= 6) return 2;
-  return 1;
+  // Effectively “infinite” for now — miss count doesn’t gate progression.
+  return 9999;
 }
+
 
 // ---------- Fairness helpers: ensure each level is beatable ----------
 
@@ -629,6 +678,7 @@ function endRound(reason = "normal") {
 
   // ✅ Only gate on points now
   const passedScoreGate = levelGain >= requiredGain;
+  const passedMissGate = true; // ignore misses for progression (for now)
 
   // Track session best (cumulative score)
   if (finalScore > bestScore) {
