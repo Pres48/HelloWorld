@@ -29,19 +29,21 @@ const leaderboardList = document.getElementById("leaderboardList");
 const levelGoals = document.getElementById("levelGoals");
 
 // ----- Result Modal Elements -----
-const mgOverlay    = document.getElementById("mg-modal-overlay");
-const mgTitle      = document.getElementById("mg-title");
-const mgSubtitle   = document.getElementById("mg-subtitle");
-const mgExtra      = document.getElementById("mg-extra");
-const mgTotal      = document.getElementById("mg-total-points");
-const mgRound      = document.getElementById("mg-round-points");
-const mgNeeded     = document.getElementById("mg-needed");
-const mgMisses     = document.getElementById("mg-misses");
-const mgCreditsEl  = document.getElementById("mg-credits");
-const mgBtnNext    = document.getElementById("mg-next");
-const mgBtnNew     = document.getElementById("mg-new");
-const mgBtnContinue= document.getElementById("mg-continue");
-const mgBtnClose   = document.getElementById("mg-close");
+const mgOverlay     = document.getElementById("mg-modal-overlay");
+const mgTitle       = document.getElementById("mg-title");
+const mgSubtitle    = document.getElementById("mg-subtitle");
+const mgExtra       = document.getElementById("mg-extra");
+
+const mgTotalPoints = document.getElementById("mg-total-points");
+const mgRoundPoints = document.getElementById("mg-round-points");
+const mgNeeded      = document.getElementById("mg-needed");
+const mgMisses      = document.getElementById("mg-misses");
+const mgCredits     = document.getElementById("mg-credits");
+
+const mgBtnNext     = document.getElementById("mg-next");
+const mgBtnNew      = document.getElementById("mg-new");
+const mgBtnContinue = document.getElementById("mg-continue");
+const mgBtnClose    = document.getElementById("mg-close");
 
 // Popover elements
 const howToPlayInfoBtn = document.getElementById("howToPlayInfoBtn");
@@ -63,7 +65,7 @@ let bestLevel = 0;
 let currentRunScoreId = null;
 let currentRunSavedScore = 0;
 
-// Retry credits you earn at certain milestone levels
+// Retry credits you earn at certain milestone levels (banked in this browser session)
 let retryCredits = 0;
 
 
