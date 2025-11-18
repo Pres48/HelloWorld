@@ -360,7 +360,7 @@ function openResultModal({
   roundPoints,
   neededPoints,
   misses,
-  retryCredits,             // <-- keep this
+  retryCredits,
   nextLevelNeededPoints,
   isPerfectLevel = false,
   isNewHighScore = false,
@@ -370,9 +370,25 @@ function openResultModal({
     return;
   }
 
-  const credits = typeof retryCredits === "number" ? retryCredits : (window.retryCredits || 0);
+  // ---- Safe credit value ----
+  const credits = typeof retryCredits === "number"
+    ? retryCredits
+    : (window.retryCredits || 0);
 
-  // Header text
+  console.log("openResultModal()", {
+    cleared,
+    level,
+    totalPoints,
+    roundPoints,
+    neededPoints,
+    misses,
+    credits,
+    nextLevelNeededPoints,
+    isPerfectLevel,
+    isNewHighScore,
+  });
+
+  // ---- Header text ----
   if (cleared) {
     if (mgTitle) mgTitle.textContent = `Level ${level} Cleared!`;
     if (mgSubtitle)
@@ -386,20 +402,21 @@ function openResultModal({
       ).toLocaleString()} points short.`;
   }
 
-  // ---- Main stats ----
+  // ---- Stats ----
   if (mgNeeded)      mgNeeded.textContent      = neededPoints.toLocaleString();
   if (mgTotalPoints) mgTotalPoints.textContent = totalPoints.toLocaleString();
   if (mgMisses)      mgMisses.textContent      = misses.toLocaleString();
   if (mgCredits)     mgCredits.textContent     = credits.toString();
 
+  // Round points + ✓
   if (mgRoundPoints) {
-    const clearedThisLevel = roundPoints >= neededPoints;
-    mgRoundPoints.innerHTML = clearedThisLevel
+    const passedLevel = roundPoints >= neededPoints;
+    mgRoundPoints.innerHTML = passedLevel
       ? `${roundPoints.toLocaleString()} <span class="mg-round-check">✓</span>`
       : roundPoints.toLocaleString();
   }
 
-  // ---- Build mgExtra (stacked info lines, clean text) ----
+  // ---- Extra stacked messages ----
   if (mgExtra) {
     const extraLines = [];
 
@@ -426,63 +443,78 @@ function openResultModal({
     }
   }
 
-// ---- Button wiring & visibility ----
+  // --------------------------------------------------------------------
+  //                      BUTTON LOGIC (FINAL)
+  // --------------------------------------------------------------------
 
-// Primary button behavior
-if (mgBtnNext) {
-  // clear any old handler
-  mgBtnNext.onclick = null;
+  const btnNext     = document.getElementById("mg-next");
+  const btnContinue = document.getElementById("mg-continue");
+  const btnNewGame  = document.getElementById("mg-new"); // hidden always, if exists
+
+  // Clear old handlers
+  if (btnNext)     btnNext.onclick = null;
+  if (btnContinue) btnContinue.onclick = null;
+  if (btnNewGame)  btnNewGame.onclick = null;
 
   if (cleared) {
-    // Level cleared → Start Next Level
-    mgBtnNext.textContent = "Start Next Level";
-    mgBtnNext.classList.remove("hidden");
-    mgBtnNext.onclick = () => {
-      closeResultModal();
-      if (!gameState) return;
-      const nextLevel = gameState.level + 1;
-      startLevel(nextLevel);
-    };
+    // LEVEL CLEARED ----------------------------------------------------
+
+    // Big green button → Start Next Level
+    if (btnNext) {
+      btnNext.classList.remove("hidden");
+      btnNext.textContent = "Start Next Level";
+      btnNext.onclick = () => {
+        closeResultModal();
+        startLevel(level + 1);
+      };
+    }
+
+    // Hide other buttons
+    if (btnContinue) btnContinue.classList.add("hidden");
+    if (btnNewGame)  btnNewGame.classList.add("hidden");
+
   } else {
-    // Run over → Start New Game
-    mgBtnNext.textContent = "Start New Game";
-    mgBtnNext.classList.remove("hidden");
-    mgBtnNext.onclick = () => {
-      closeResultModal();
-      restartGame();
-    };
-  }
-}
+    // RUN OVER ---------------------------------------------------------
 
-// Secondary "Continue" button (only on run over & if credits > 0)
-if (mgBtnContinue) {
-  mgBtnContinue.onclick = null;
+    // Big green button → Start New Game
+    if (btnNext) {
+      btnNext.classList.remove("hidden");
+      btnNext.textContent = "Start New Game";
+      btnNext.onclick = () => {
+        closeResultModal();
+        restartGame();
+      };
+    }
 
-  const showContinue = !cleared && credits > 0;
-  mgBtnContinue.classList.toggle("hidden", !showContinue);
+    // Show Continue only if credits > 0
+    if (btnContinue) {
+      const showContinue = credits > 0;
+      btnContinue.classList.toggle("hidden", !showContinue);
 
-  if (showContinue) {
-    mgBtnContinue.textContent = `Continue (${credits})`;
-    mgBtnContinue.onclick = () => {
-      if (!gameState || credits <= 0) return;
+      if (showContinue) {
+        btnContinue.textContent = `Continue (${credits})`;
+        btnContinue.onclick = () => {
+          window.retryCredits = Math.max(0, (window.retryCredits || 0) - 1);
 
-      // Spend one credit
-      retryCredits = Math.max(0, (retryCredits || 0) - 1);
+          // Restore score and retry same level
+          if (gameState && typeof gameState.scoreAtLevelStart === "number") {
+            gameState.score = gameState.scoreAtLevelStart;
+          }
 
-      // Reset score to start-of-level for a true retry
-      if (typeof gameState.scoreAtLevelStart === "number") {
-        gameState.score = gameState.scoreAtLevelStart;
+          closeResultModal();
+          startLevel(level); // retry same level
+        };
       }
+    }
 
-      closeResultModal();
-      startLevel(gameState.level); // retry same level
-    };
+    // Never show New Game button separately
+    if (btnNewGame) btnNewGame.classList.add("hidden");
   }
+
+  // Show modal
+  mgOverlay.classList.remove("hidden");
 }
 
-mgOverlay.classList.remove("hidden");
-
-}
 
 
 function closeResultModal() {
