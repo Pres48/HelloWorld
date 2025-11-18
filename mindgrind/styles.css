@@ -814,11 +814,15 @@ button:disabled {
 }
 
 .mg-btn {
+  display: flex;                 /* override global button inline-flex */
+  align-items: center;
+  justify-content: center;
+  width: 100%;
   border-radius: 999px;
   border: none;
-  font-size: 18px;
+  font-size: 16px;               /* slightly smaller */
   cursor: pointer;
-  padding: 14px 18px;
+  padding: 12px 14px;            /* slightly shorter button */
   text-align: center;
 }
 
@@ -830,13 +834,42 @@ button:disabled {
   box-shadow:
     0 10px 20px rgba(34, 197, 94, 0.45),
     0 0 0 1px rgba(15, 118, 110, 0.2);
+  font-size: 17px;               /* a touch larger than secondary */
 }
 
-/* Center the Start Next Level / Start New Game button */
+/* Center the primary Start Next Level button */
 #mg-next {
-  max-width: 100%;
-  margin: 10px auto 0 auto;
+  max-width: 320px;
+  margin: 10px auto 0 auto;      /* centered */
 }
+
+/* Run Over layout: buttons on one row */
+.mg-modal.mg-run-over .mg-buttons {
+  flex-direction: row;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.mg-modal.mg-run-over .mg-btn {
+  flex: 1;
+}
+
+/* In Run Over mode, primary is full-width within the row */
+.mg-modal.mg-run-over #mg-next {
+  max-width: none;
+  margin: 0;
+}
+
+/* Active-looking Continue button */
+.mg-modal.mg-run-over #mg-continue {
+  background: linear-gradient(135deg, #4f46e5, #6366f1);
+  color: #e5e7eb;
+  font-weight: 600;
+  box-shadow:
+    0 6px 14px rgba(79, 70, 229, 0.55),
+    0 0 0 1px rgba(129, 140, 248, 0.4);
+}
+
 
 /* Secondary buttons */
 .mg-btn.mg-secondary {
