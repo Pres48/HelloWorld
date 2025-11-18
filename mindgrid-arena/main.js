@@ -677,12 +677,24 @@ function onTileClick(tile) {
   selectedThisTurn = true;
   setTilesDisabled(true);
 
-  const el = gridContainer.querySelector(`[data-tile-id="${tile.id}"]`);
-  if (el) el.classList.add("selected");
+const el = gridContainer.querySelector(`[data-tile-id="${tile.id}"]`);
+if (el) {
+  el.classList.add("selected");
 
-  resetTimer();
+  // If risk values are hidden at this level, reveal this one on click
+  if (tile.type === "risk" && shouldHideRiskValues(gameState.level)) {
+    const valueSpan = el.querySelector(".tile-value");
+    if (valueSpan) {
+      valueSpan.textContent = tile.value;          // show actual number
+      valueSpan.classList.add("risk-revealed");    // optional, for a little effect
+    }
+  }
+}
 
-  const updatedState = resolveTileSelection(tile, gameState);
+resetTimer();
+
+const updatedState = resolveTileSelection(tile, gameState);
+
   gameState = {
     ...gameState,
     ...updatedState,
