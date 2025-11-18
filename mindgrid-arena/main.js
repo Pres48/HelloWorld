@@ -488,18 +488,45 @@ function startGame() {
     locked: false,
   };
 
-  // Debug exports
-      window.gameState = gameState;
-      window.getLevelBehavior = getLevelBehavior;
-      window.renderGrid = renderGrid;
-      
-      window.jumpToLevel = function (level) {
-          gameState.level = level;
-          gameState.behavior = getLevelBehavior(level);
-          renderGrid();
-          console.log("Jumped to Level", level, gameState.behavior);
-      };
-      
+
+  
+  
+// Debug exports
+window.gameState = gameState;
+window.getLevelBehavior = getLevelBehavior;
+window.renderGrid = renderGrid;
+
+window.jumpToLevel = function (level) {
+  const prevScore = gameState ? gameState.score : 0;
+  const difficulty = getDifficultyForLevel(level);
+  const behavior = getLevelBehavior(level);
+
+  gameState = {
+    level,
+    turnIndex: 0,
+    turns: difficulty.turns,
+    score: prevScore,             // keep current score
+    scoreAtLevelStart: prevScore,
+    missedTurns: 0,
+    multiplier: 1,
+    chainCount: 0,
+    lastTileDelta: 0,
+    grid: generateGrid(level),
+    timePerTurnMs: difficulty.timePerTurnMs,
+    behavior,
+    locked: false,
+  };
+
+  window.gameState = gameState; // keep the exported reference fresh
+
+  updateUIFromState();
+  updateLevelGoals();
+  renderGrid();
+  messageArea.textContent = `Debug jump to Level ${level}`;
+};
+
+
+  
 
   updateUIFromState();
   updateLevelGoals();
