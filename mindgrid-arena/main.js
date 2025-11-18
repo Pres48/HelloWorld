@@ -608,6 +608,12 @@ function setTilesDisabled(disabled) {
   });
 }
 
+function shouldHideRiskValues(level) {
+  const behavior = getLevelBehavior(level);
+  return behavior.hideRiskValues;
+}
+
+
 function renderGrid() {
   gridContainer.innerHTML = "";
   if (!gameState) return;
@@ -678,6 +684,7 @@ function onTileClick(tile) {
   setTilesDisabled(true);
 
 const el = gridContainer.querySelector(`[data-tile-id="${tile.id}"]`);
+
 if (el) {
   el.classList.add("selected");
 
