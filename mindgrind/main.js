@@ -341,6 +341,7 @@ function openResultModal({
   roundPoints,
   neededPoints,
   misses,
+  retryCredits,
   nextLevelNeededPoints,
   isPerfectLevel = false,
   isNewHighScore = false,
@@ -350,19 +351,7 @@ function openResultModal({
     return;
   }
 
-  console.log("openResultModal called", {
-    cleared,
-    level,
-    totalPoints,
-    roundPoints,
-    neededPoints,
-    misses,
-    retryCredits,
-    nextLevelNeededPoints,
-    isPerfectLevel,
-    isNewHighScore,
-  });
-
+  // Header text
   if (cleared) {
     if (mgTitle) mgTitle.textContent = `Level ${level} Cleared!`;
     if (mgSubtitle)
@@ -376,30 +365,37 @@ function openResultModal({
       ).toLocaleString()} points short.`;
   }
 
+  // ---- Main stats ----
+  if (mgNeeded)      mgNeeded.textContent      = neededPoints.toLocaleString();
   if (mgTotalPoints) mgTotalPoints.textContent = totalPoints.toLocaleString();
-  if (mgRoundPoints) mgRoundPoints.textContent = roundPoints.toLocaleString();
-  if (mgNeeded) mgNeeded.textContent = neededPoints.toLocaleString();
-  if (mgMisses) mgMisses.textContent = misses.toLocaleString();
-  if (mgCredits) mgCredits.textContent = retryCredits.toString();
+  if (mgMisses)      mgMisses.textContent      = misses.toLocaleString();
+  if (mgCredits)     mgCredits.textContent     = retryCredits.toString();
 
-  // ---- Build mgExtra (stacked info lines, clean UI text) ----
+  if (mgRoundPoints) {
+    const clearedThisLevel = roundPoints >= neededPoints;
+    mgRoundPoints.innerHTML = clearedThisLevel
+      ? `${roundPoints.toLocaleString()} <span class="mg-round-check">✓</span>`
+      : roundPoints.toLocaleString();
+  }
+
+  // ---- Build mgExtra (stacked info lines, clean text) ----
   if (mgExtra) {
     const extraLines = [];
-  
+
     if (cleared && typeof nextLevelNeededPoints === "number") {
       extraLines.push(
         `Next level target: ${nextLevelNeededPoints.toLocaleString()} pts`
       );
     }
-  
+
     if (cleared && isPerfectLevel) {
       extraLines.push(`Perfect level (0 misses)`);
     }
-  
+
     if (isNewHighScore) {
       extraLines.push(`New high score!`);
     }
-  
+
     if (extraLines.length > 0) {
       mgExtra.innerHTML = extraLines.join("<br>");
       mgExtra.classList.remove("hidden");
@@ -409,13 +405,13 @@ function openResultModal({
     }
   }
 
-  // Button visibility:
+  // ---- Button visibility ----
   const showNext = !!cleared;
   const showNew = !cleared;
   const canContinue = !cleared && retryCredits > 0;
 
-  if (mgBtnNext) mgBtnNext.classList.toggle("hidden", !showNext);
-  if (mgBtnNew) mgBtnNew.classList.toggle("hidden", !showNew);
+  if (mgBtnNext)     mgBtnNext.classList.toggle("hidden", !showNext);
+  if (mgBtnNew)      mgBtnNew.classList.toggle("hidden", !showNew);
   if (mgBtnContinue) {
     mgBtnContinue.classList.toggle("hidden", !canContinue);
     if (canContinue) {
@@ -425,6 +421,7 @@ function openResultModal({
 
   mgOverlay.classList.remove("hidden");
 }
+
 
 function closeResultModal() {
   if (!mgOverlay) return;
