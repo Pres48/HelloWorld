@@ -94,12 +94,6 @@ export function getLevelBehavior(level) {
   if (level <= 40) {
     behavior.equationChance = 0.42;
     behavior.multiStepEquationChance = 0.18;
-
-    // At 15+ we start hiding risk values: pure “feel” choices
-    if (level >= 45) {
-      behavior.hideRiskValues = true; // risk tiles show "???"
-    }
-
     return behavior;
   }
 
@@ -113,6 +107,9 @@ export function getLevelBehavior(level) {
 
     behavior.showNumberChainLabels = false; // tiles still colored, but no "NUM"/"CHAIN"
     behavior.hideRiskValues = true;        // risk stays hidden
+
+    // behavior.hideRiskValues = true; // risk tiles show "???"
+    behavior.hideRiskValues = (level >= 55); // only true at Level 55
 
     return behavior;
   }
