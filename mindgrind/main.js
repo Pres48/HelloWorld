@@ -323,15 +323,34 @@ function getAllowedMissesForLevel(level) {
   return 9999;
 }
 
+/*
 // ===== Retry credit awards at milestone levels =====
 function maybeAwardRetryCreditForLevel(level) {
-  // tweak these milestones however you like
-  const milestones = [12, 15, 25, 30];
-  if (milestones.includes(level)) {
+  if (level % 5 === 0) {
     retryCredits++;
-    console.log("Retry credit earned, total:", retryCredits);
+    console.log(`Retry credit earned at level ${level}. Total:`, retryCredits);
   }
 }
+*/
+
+// ===== Retry credit awards at milestone levels =====
+function maybeAwardRetryCreditForLevel(level) {
+  const milestones = [5, 10, 20, 30];
+
+  if (milestones.includes(level)) {
+    retryCredits++;
+    console.log(`Retry credit earned at level ${level}. Total:`, retryCredits);
+    return;
+  }
+
+  // After level 40, give 1 credit every 20 levels
+  if (level >= 40 && level % 20 === 0) {
+    retryCredits++;
+    console.log(`Late-game retry credit at level ${level}. Total:`, retryCredits);
+  }
+}
+
+
 
 // ===== Modal open/close helpers =====
 function openResultModal({
