@@ -8,6 +8,8 @@ import {
 
 import { saveScoreToSupabase, fetchTopScores } from "./supabaseClient.js";
 
+// ---------- DOM ELEMENTS ----------
+
 const gridContainer = document.getElementById("gridContainer");
 const levelDisplay = document.getElementById("levelDisplay");
 const turnDisplay = document.getElementById("turnDisplay");
@@ -53,6 +55,8 @@ const levelGoalsInfoPopover = document.getElementById("levelGoalsInfoPopover");
 const leaderboardInfoBtn = document.getElementById("leaderboardInfoBtn");
 const leaderboardInfoPopover = document.getElementById("leaderboardInfoPopover");
 
+// ---------- CONSTANTS & STATE ----------
+
 const MIN_SUBMIT_SCORE = 5000; // minimum score required to submit to global leaderboard
 const HIGH_SCORE_NAME_WARN_THRESHOLD = MIN_SUBMIT_SCORE;
 
@@ -68,8 +72,8 @@ let currentRunSavedScore = 0;
 // Retry credits you earn at certain milestone levels (banked in this browser session)
 let retryCredits = 0;
 
-
 // ---------- Utility ----------
+
 function escapeHtml(str) {
   if (typeof str !== "string") return "";
   return str.replace(/[&<>"']/g, (c) => {
@@ -88,19 +92,16 @@ function escapeHtml(str) {
 
 // Make a simple or multi-step equation string that evaluates to `value`
 function makeEquationString(value, multiStepChance = 0) {
-  // Guard against weird values
   if (!Number.isFinite(value)) return String(value);
 
   // Maybe do a multi-step equation
   if (multiStepChance > 0 && Math.random() < multiStepChance) {
     // Simple pattern: a + b - c = value
-    // Ensure all integers, keep it readable
     const a = Math.max(1, Math.floor(value * 0.4));
     const b = Math.max(1, Math.floor(value * 0.8) - a);
     const c = a + b - value; // ensures equality
 
     if (Number.isInteger(c) && c >= 0) {
-      // e.g. "10 + 7 - 3"
       return `${a}+${b}-${c}`;
     }
   }
@@ -122,7 +123,6 @@ function makeEquationString(value, multiStepChance = 0) {
   }
 
   if (op === "mul" && value >= 4) {
-    // find a small factor
     for (let i = 2; i <= Math.sqrt(value); i++) {
       if (value % i === 0) {
         const a = i;
@@ -191,12 +191,10 @@ function shuffleGridInPlace(grid) {
   }
 }
 
-
 /* ============================================================
    PROFANITY FILTER (safe patterns — fill in your word list)
    ============================================================ */
 
-// Build leetspeak + punctuation-tolerant regex for each word
 function buildWordRegex(word) {
   const escaped = word.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
@@ -234,104 +232,59 @@ const PROFANITY_WORDS = [
   // ...
 ];
 
-// Compile the regex patterns
 const PROFANITY_PATTERNS = PROFANITY_WORDS.map(
   (w) => new RegExp(buildWordRegex(w), "i")
 );
 
-// Main exported function
 function isNameProfane(name) {
   if (!name) return false;
   const cleaned = name.normalize("NFKD");
   return PROFANITY_PATTERNS.some((re) => re.test(cleaned));
 }
 
-
 // ======================================================
 //  LEVEL GOAL / DIFFICULTY HELPERS (CURVED PROGRESSION)
 // ======================================================
 
 function getTheoreticalMaxLevelGain(level) {
-  // Use the same function you already have in game.js
-  // to know how many turns this level will have.
   const { turns } = getDifficultyForLevel(level); // 8–12 turns
 
-  // These are generous upper bounds given your current tile ranges:
-  // NUMBER: 5–20, CHAIN: 5–12, RISK: -25–40, BONUS boosts multiplier.
-  if (turns <= 8)  return 650;  // early levels, slow timer, 8 turns
-  if (turns <= 10) return 800;  // mid levels, 9–10 turns
-  return 950;                   // later levels, 11–12 turns
+  // These are generous upper bounds given your current tile ranges
+  if (turns <= 8)  return 650;
+  if (turns <= 10) return 800;
+  return 950;
 }
 
-/**
- * Required score gain PER LEVEL to advance.
- * Uses a curved progression so:
- *  - Levels 1–5 ramp gently (onboarding)
- *  - 6–15 ramp steadily (core difficulty)
- *  - 16–20 are spicy
- *  - 20+ ramps with a slow log curve (endless but not impossible)
- *
- * Then we clamp the requirement by getTheoreticalMaxLevelGain(level)
- * so a level is NEVER mathematically impossible.
- */
 function getRequiredGainForLevel(level) {
   let required;
 
   if (level <= 1) {
-    // Level 1: easy intro
     required = 80;
   } else if (level <= 5) {
-    // Levels 2–5: +15 per level
-    // L1: 80, L2: 95, L3: 110, L4: 125, L5: 140
     required = 80 + 15 * (level - 1);
   } else if (level <= 10) {
-    // Levels 6–10: ramp a bit quicker, +20 each
-    // L6: 160, L7: 180, L8: 200, L9: 220, L10: 240
     required = 160 + 20 * (level - 6);
   } else if (level <= 15) {
-    // Levels 11–15: +25 each
-    // L11: 270, L12: 295, L13: 320, L14: 345, L15: 370
     required = 270 + 25 * (level - 11);
   } else if (level <= 20) {
-    // Levels 16–20: +30 each
-    // L16: 400, L17: 430, L18: 460, L19: 490, L20: 520
     required = 400 + 30 * (level - 16);
   } else {
-    // 21+ : slow logarithmic growth so it's endless but not insane
     const extra = level - 20;
-    const baseAfter20 = 550;  // starting requirement around level 20
-    const step = 35;          // strength of late-game ramp
+    const baseAfter20 = 550;
+    const step = 35;
     required = baseAfter20 + step * Math.log2(1 + extra);
   }
 
-  // Round nicely
   required = Math.round(required);
 
-  // 🔒 Safety: never require more than the theoretical max for that level.
   const cap = getTheoreticalMaxLevelGain(level);
   return Math.min(required, cap);
 }
-
-// function getAllowedMissesForLevel(level) {
-//  if (level <= 3) return 3;
-//  if (level <= 6) return 2;
-//  return 1;
-// }
 
 function getAllowedMissesForLevel(level) {
   // Effectively “infinite” for now — miss count doesn’t gate progression.
   return 9999;
 }
-
-/*
-// ===== Retry credit awards at milestone levels =====
-function maybeAwardRetryCreditForLevel(level) {
-  if (level % 5 === 0) {
-    retryCredits++;
-    console.log(`Retry credit earned at level ${level}. Total:`, retryCredits);
-  }
-}
-*/
 
 // ===== Retry credit awards at milestone levels =====
 function maybeAwardRetryCreditForLevel(level) {
@@ -350,9 +303,8 @@ function maybeAwardRetryCreditForLevel(level) {
   }
 }
 
-
-
 // ===== Modal open/close helpers =====
+
 function openResultModal({
   cleared,
   level,
@@ -360,7 +312,7 @@ function openResultModal({
   roundPoints,
   neededPoints,
   misses,
-  retryCredits,
+  retryCredits: retryCreditsParam,
   nextLevelNeededPoints,
   isPerfectLevel = false,
   isNewHighScore = false,
@@ -370,10 +322,9 @@ function openResultModal({
     return;
   }
 
-  // ---- Safe credit value ----
-  const credits = typeof retryCredits === "number"
-    ? retryCredits
-    : (window.retryCredits || 0);
+  // Safe credit value (prefer argument, fall back to global)
+  const credits =
+    typeof retryCreditsParam === "number" ? retryCreditsParam : retryCredits;
 
   console.log("openResultModal()", {
     cleared,
@@ -403,13 +354,21 @@ function openResultModal({
   }
 
   // ---- Stats ----
-  if (mgNeeded)      mgNeeded.textContent      = neededPoints.toLocaleString();
-  if (mgTotalPoints) mgTotalPoints.textContent = totalPoints.toLocaleString();
-  if (mgMisses)      mgMisses.textContent      = misses.toLocaleString();
-  if (mgCredits)     mgCredits.textContent     = credits.toString();
+  if (mgNeeded && typeof neededPoints === "number") {
+    mgNeeded.textContent = neededPoints.toLocaleString();
+  }
+  if (mgTotalPoints && typeof totalPoints === "number") {
+    mgTotalPoints.textContent = totalPoints.toLocaleString();
+  }
+  if (mgMisses && typeof misses === "number") {
+    mgMisses.textContent = misses.toLocaleString();
+  }
+  if (mgCredits) {
+    mgCredits.textContent = credits.toString();
+  }
 
-  // Round points + ✓
-  if (mgRoundPoints) {
+  // Round points + ✓ if pass
+  if (mgRoundPoints && typeof roundPoints === "number") {
     const passedLevel = roundPoints >= neededPoints;
     mgRoundPoints.innerHTML = passedLevel
       ? `${roundPoints.toLocaleString()} <span class="mg-round-check">✓</span>`
@@ -444,12 +403,12 @@ function openResultModal({
   }
 
   // --------------------------------------------------------------------
-  //                      BUTTON LOGIC (FINAL)
+  //                      BUTTON LOGIC
   // --------------------------------------------------------------------
 
-  const btnNext     = document.getElementById("mg-next");
-  const btnContinue = document.getElementById("mg-continue");
-  const btnNewGame  = document.getElementById("mg-new"); // hidden always, if exists
+  const btnNext     = mgBtnNext;
+  const btnContinue = mgBtnContinue;
+  const btnNewGame  = mgBtnNew; // We keep but hide
 
   // Clear old handlers
   if (btnNext)     btnNext.onclick = null;
@@ -494,20 +453,21 @@ function openResultModal({
       if (showContinue) {
         btnContinue.textContent = `Continue (${credits})`;
         btnContinue.onclick = () => {
-          window.retryCredits = Math.max(0, (window.retryCredits || 0) - 1);
+          // Spend one credit
+          retryCredits = Math.max(0, retryCredits - 1);
 
-          // Restore score and retry same level
+          // Restore score at start of this level
           if (gameState && typeof gameState.scoreAtLevelStart === "number") {
             gameState.score = gameState.scoreAtLevelStart;
           }
 
           closeResultModal();
-          startLevel(level); // retry same level
+          startLevel(level); // retry the same level
         };
       }
     }
 
-    // Never show New Game button separately
+    // Never show separate New Game button
     if (btnNewGame) btnNewGame.classList.add("hidden");
   }
 
@@ -515,35 +475,20 @@ function openResultModal({
   mgOverlay.classList.remove("hidden");
 }
 
-
-
 function closeResultModal() {
   if (!mgOverlay) return;
   mgOverlay.classList.add("hidden");
 }
 
-// ===== Modal button handlers =====
+// Close button on modal (X)
 if (mgBtnClose) {
   mgBtnClose.addEventListener("click", () => {
     closeResultModal();
   });
 }
 
-
 // ---------- Fairness helpers: ensure each level is beatable ----------
 
-/**
- * Compute a *feasible* best-case gain for a given static grid and turn count.
- * We only simulate a few simple strategies that are actually possible:
- *  - Always best NUMBER tile
- *  - Always best CHAIN tile
- *  - A few turns of BONUS, then CHAIN
- *  - Always best positive RISK tile
- *
- * Because these are all legal strategies, this is a *lower bound* on true
- * maximum potential gain. If this is < requiredGain, the level is definitely
- * too hard → we reroll the grid.
- */
 function computeMaxPossibleGain(grid, turns) {
   let bestNumber = null;
   let bestChain = null;
@@ -575,7 +520,7 @@ function computeMaxPossibleGain(grid, turns) {
 
   let maxGain = 0;
 
-  // Strategy A: always best NUMBER tile (no chains/mult changes)
+  // Strategy A: always best NUMBER tile
   if (bestNumber !== null) {
     let mult = 1;
     let total = 0;
@@ -586,7 +531,7 @@ function computeMaxPossibleGain(grid, turns) {
     maxGain = Math.max(maxGain, total);
   }
 
-  // Strategy B: always best CHAIN tile (no bonus)
+  // Strategy B: always best CHAIN tile
   if (bestChain !== null) {
     let mult = 1;
     let chainCount = 0;
@@ -600,9 +545,9 @@ function computeMaxPossibleGain(grid, turns) {
     maxGain = Math.max(maxGain, total);
   }
 
-  // Strategy C: some early BONUS turns to pump multiplier, then CHAIN
+  // Strategy C: BONUS then CHAIN
   if (bestChain !== null && bestBonus !== null) {
-    const maxSetupTurns = Math.min(5, turns); // don't go crazy, just a few
+    const maxSetupTurns = Math.min(5, turns);
     for (let setup = 1; setup <= maxSetupTurns; setup++) {
       let mult = 1;
       let chainCount = 0;
@@ -610,12 +555,10 @@ function computeMaxPossibleGain(grid, turns) {
 
       for (let t = 0; t < turns; t++) {
         if (t < setup) {
-          // BONUS turn: small points, boost multiplier
           const base = 1;
           total += Math.round(base * mult);
           mult = parseFloat((mult + bestBonus * 0.25).toFixed(2));
         } else {
-          // CHAIN turn with boosted multiplier and chainCount
           const factor = 1 + chainCount * 0.35;
           const base = Math.round(bestChain * factor);
           total += Math.round(base * mult);
@@ -627,7 +570,7 @@ function computeMaxPossibleGain(grid, turns) {
     }
   }
 
-  // Strategy D: always best positive RISK tile (if any)
+  // Strategy D: always best positive RISK tile
   if (bestRiskPos !== null) {
     let mult = 1;
     let total = 0;
@@ -641,11 +584,6 @@ function computeMaxPossibleGain(grid, turns) {
   return maxGain;
 }
 
-/**
- * Generate a "fair" grid for a given level: reroll until
- * the theoretical best-case gain is at least the requiredGain
- * for that level. Never lowers the target.
- */
 function generateFairGrid(level) {
   const { turns } = getDifficultyForLevel(level);
   const requiredGain = getRequiredGainForLevel(level);
@@ -657,8 +595,6 @@ function generateFairGrid(level) {
     tries++;
     const maxPossible = computeMaxPossibleGain(grid, turns);
 
-    // If this grid is capable of reaching the required gain, or we've tried
-    // too many times (safety cap), accept it.
     if (maxPossible >= requiredGain || tries >= 30) {
       break;
     }
@@ -666,6 +602,8 @@ function generateFairGrid(level) {
 
   return grid;
 }
+
+// ---------- Timer / Name warning helpers ----------
 
 function resetTimer() {
   if (timerInterval) {
@@ -698,7 +636,7 @@ function startGame() {
 
   const difficulty = getDifficultyForLevel(level);
   const behavior = getLevelBehavior(level);
- 
+
   gameState = {
     level,
     turnIndex: 0,
@@ -716,46 +654,38 @@ function startGame() {
     lastClickTurn: -1,
   };
 
+  // Debug exports
+  window.gameState = gameState;
+  window.getLevelBehavior = getLevelBehavior;
+  window.renderGrid = renderGrid;
 
-  
-  
-// Debug exports - START ----------------------
-  
-window.gameState = gameState;
-window.getLevelBehavior = getLevelBehavior;
-window.renderGrid = renderGrid;
+  window.jumpToLevel = function (lvl) {
+    const prevScore = gameState ? gameState.score : 0;
+    const diff = getDifficultyForLevel(lvl);
+    const beh = getLevelBehavior(lvl);
 
-window.jumpToLevel = function (level) {
-  const prevScore = gameState ? gameState.score : 0;
-  const difficulty = getDifficultyForLevel(level);
-  const behavior = getLevelBehavior(level);
+    gameState = {
+      level: lvl,
+      turnIndex: 0,
+      turns: diff.turns,
+      score: prevScore,
+      scoreAtLevelStart: prevScore,
+      missedTurns: 0,
+      multiplier: 1,
+      chainCount: 0,
+      lastTileDelta: 0,
+      grid: generateGrid(lvl),
+      timePerTurnMs: diff.timePerTurnMs,
+      behavior: beh,
+      locked: false,
+    };
 
-  gameState = {
-    level,
-    turnIndex: 0,
-    turns: difficulty.turns,
-    score: prevScore,             // keep current score
-    scoreAtLevelStart: prevScore,
-    missedTurns: 0,
-    multiplier: 1,
-    chainCount: 0,
-    lastTileDelta: 0,
-    grid: generateGrid(level),
-    timePerTurnMs: difficulty.timePerTurnMs,
-    behavior,
-    locked: false,
+    window.gameState = gameState;
+    updateUIFromState();
+    updateLevelGoals();
+    renderGrid();
+    messageArea.textContent = `Debug jump to Level ${lvl}`;
   };
-
-  window.gameState = gameState; // keep the exported reference fresh
-
-  updateUIFromState();
-  updateLevelGoals();
-  renderGrid();
-  messageArea.textContent = `Debug jump to Level ${level}`;
-};
-
-// Debug exports - END ----------------------
-  
 
   updateUIFromState();
   updateLevelGoals();
@@ -770,7 +700,6 @@ window.jumpToLevel = function (level) {
 
   nextTurn();
 }
-
 
 function startLevel(level) {
   const prevScore = gameState ? gameState.score : 0;
@@ -809,16 +738,13 @@ function startLevel(level) {
   nextTurn();
 }
 
-
 function nextTurn() {
   if (!gameState) return;
 
-  // allow one click this turn
   gameState.locked = false;
 
   const behavior = gameState.behavior || getLevelBehavior(gameState.level);
 
-  // Optional: shuffle grid each turn for higher levels
   if (behavior.shuffleEachTurn) {
     shuffleGridInPlace(gameState.grid);
     renderGrid();
@@ -886,15 +812,17 @@ function shouldHideRiskValues(level) {
   return behavior.hideRiskValues;
 }
 
-
 function getRandomInt(min, max) {
   // inclusive min & max
   return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 
 function getRiskDisplayOptions(tile) {
-  // Reuse existing options if we've already generated them
-  if (tile.riskOptions && Array.isArray(tile.riskOptions) && tile.riskOptions.length === 2) {
+  if (
+    tile.riskOptions &&
+    Array.isArray(tile.riskOptions) &&
+    tile.riskOptions.length === 2
+  ) {
     return tile.riskOptions;
   }
 
@@ -902,39 +830,32 @@ function getRiskDisplayOptions(tile) {
   let decoy;
 
   if (actual > 0) {
-    // Actual is a reward → decoy is a penalty
     const maxPenalty = Math.max(5, Math.floor(actual * 0.75));
     const minPenalty = Math.min(-1, -maxPenalty);
     decoy = getRandomInt(minPenalty, -1);
   } else if (actual < 0) {
-    // Actual is a penalty → decoy is a reward
     const magnitude = Math.abs(actual);
     const minReward = Math.max(1, Math.floor(magnitude * 0.5));
     const maxReward = minReward + Math.max(5, Math.floor(magnitude * 0.5));
     decoy = getRandomInt(minReward, maxReward);
   } else {
-    // Rare: actual is 0, just pick something non-zero
     decoy = getRandomInt(-10, 10);
     if (decoy === 0) decoy = 5;
   }
 
-  // Make sure they aren't identical
   if (decoy === actual) {
     decoy += actual > 0 ? -1 : 1;
   }
 
   let pair = [actual, decoy];
 
-  // Randomize order so player can't infer which side is real
   if (Math.random() < 0.5) {
     pair.reverse();
   }
 
-  tile.riskOptions = pair;  // cache on the tile so it stays stable across re-renders
+  tile.riskOptions = pair;
   return pair;
 }
-
-
 
 function renderGrid() {
   gridContainer.innerHTML = "";
@@ -957,7 +878,6 @@ function renderGrid() {
       const valueEl = document.createElement("span");
       valueEl.className = "tile-value";
 
-      // Decide whether to show labels
       const isNumberOrChain = tile.type === "number" || tile.type === "chain";
       const showLabel =
         (isNumberOrChain && behavior.showNumberChainLabels) ||
@@ -968,20 +888,17 @@ function renderGrid() {
         valueEl.textContent = formatTileDisplay(tile, behavior);
       } else if (tile.type === "bonus") {
         if (showLabel) label.textContent = "BONUS";
-        // Bonus tiles still show multiplier, not equations
         valueEl.textContent = `+x${(tile.value * 0.25).toFixed(2)}`;
       } else if (tile.type === "chain") {
         if (showLabel) label.textContent = "CHAIN";
         valueEl.textContent = formatTileDisplay(tile, behavior);
       } else if (tile.type === "risk") {
         if (showLabel) label.textContent = "RISK";
-      
+
         if (shouldHideRiskValues(gameState.level)) {
-          // Show two possible outcomes, one is the real tile.value
           const [optA, optB] = getRiskDisplayOptions(tile);
           valueEl.textContent = `${optA} | ${optB}`;
         } else {
-          // Normal behavior (show actual value or formatted)
           valueEl.textContent = formatTileDisplay(tile, behavior);
         }
       }
@@ -1009,19 +926,14 @@ function renderGrid() {
   });
 }
 
-
-
-
 function onTileClick(tile) {
   if (!gameState || gameState.locked) return;
   if (selectedThisTurn) return;
 
-  // 🚫 If this tile has already been used in this level, ignore it
   if (tile.used) return;
 
-  // ✅ First time this tile is being used in this level
   selectedThisTurn = true;
-  tile.used = true;          // 👈 mark it as used for the rest of the level
+  tile.used = true;
   setTilesDisabled(true);
 
   const el = gridContainer.querySelector(`[data-tile-id="${tile.id}"]`);
@@ -1029,12 +941,11 @@ function onTileClick(tile) {
   if (el) {
     el.classList.add("selected");
 
-    // If risk values are hidden at this level, reveal this one on click
     if (tile.type === "risk" && shouldHideRiskValues(gameState.level)) {
       const valueSpan = el.querySelector(".tile-value");
       if (valueSpan) {
-        valueSpan.textContent = tile.value;          // show actual number
-        valueSpan.classList.add("risk-revealed");    // optional, for a little effect
+        valueSpan.textContent = tile.value;
+        valueSpan.classList.add("risk-revealed");
       }
     }
   }
@@ -1054,7 +965,6 @@ function onTileClick(tile) {
     nextTurn();
   }, 300);
 }
-
 
 // ---------- UI Updates ----------
 
@@ -1101,8 +1011,6 @@ function updateLevelGoals() {
     `Level ${level} target: +${target.toLocaleString()} pts`;
 }
 
-
-
 // ---------- Auto-save to leaderboard ----------
 
 async function autoSaveScoreIfEligible() {
@@ -1110,7 +1018,6 @@ async function autoSaveScoreIfEligible() {
 
   const finalScore = gameState.score;
 
-  // Below threshold → don't save, just show hint
   if (finalScore < MIN_SUBMIT_SCORE) {
     saveScoreButton.disabled = true;
     saveStatus.textContent = `Reach at least ${MIN_SUBMIT_SCORE} points to appear on the global leaderboard.`;
@@ -1118,7 +1025,6 @@ async function autoSaveScoreIfEligible() {
     return;
   }
 
-  // 👇 NEW: only save if this run's score improved over what we've already logged
   if (finalScore <= currentRunSavedScore) {
     return;
   }
@@ -1127,17 +1033,15 @@ async function autoSaveScoreIfEligible() {
     playerNameInput && playerNameInput.value ? playerNameInput.value : "";
   const trimmed = rawName.trim();
 
-  // High score + blank name → warn, don't save yet
   if (finalScore >= HIGH_SCORE_NAME_WARN_THRESHOLD && trimmed.length === 0) {
     saveStatus.textContent =
       "Enter a name to save this high score on the public leaderboard.";
     saveStatus.style.color = "#f97373";
-    saveScoreButton.disabled = false; // allow manual retry after they type
+    saveScoreButton.disabled = false;
     setNameWarningActive(true);
     return;
   }
 
-  // Profanity/inappropriate filter
   if (trimmed && isNameProfane(trimmed)) {
     saveStatus.textContent =
       "That name isn't allowed on the public leaderboard. Please choose a different one.";
@@ -1147,7 +1051,6 @@ async function autoSaveScoreIfEligible() {
     return;
   }
 
-  // Safe to use. If still blank (shouldn't happen with threshold), fallback to Guest.
   const nameToUse = trimmed || "Guest";
 
   saveScoreButton.disabled = true;
@@ -1155,7 +1058,6 @@ async function autoSaveScoreIfEligible() {
   saveStatus.style.color = "#9ca3af";
 
   try {
-    // 👇 NEW: pass currentRunScoreId so Supabase can UPDATE instead of always INSERT
     const returnedId = await saveScoreToSupabase(
       nameToUse,
       finalScore,
@@ -1163,7 +1065,6 @@ async function autoSaveScoreIfEligible() {
       currentRunScoreId
     );
 
-    // Track this row + score for the rest of the run
     currentRunScoreId = returnedId;
     currentRunSavedScore = finalScore;
 
@@ -1175,9 +1076,11 @@ async function autoSaveScoreIfEligible() {
     console.error("Auto-save error:", err);
     saveStatus.textContent = "Auto-save failed. Tap to retry.";
     saveStatus.style.color = "#f97373";
-    saveScoreButton.disabled = false; // allow manual retry
+    saveScoreButton.disabled = false;
   }
 }
+
+// ---------- Fireworks ----------
 
 function triggerFireworks() {
   const overlay = document.getElementById("fireworksOverlay");
@@ -1186,31 +1089,29 @@ function triggerFireworks() {
   overlay.innerHTML = "";
   overlay.classList.add("active");
 
-  const burstCount = 4; // number of distinct bursts
-  const particlesPerBurst = 26; // per burst
+  const burstCount = 4;
+  const particlesPerBurst = 26;
   const colors = [
-    "#f97316", // orange
-    "#facc15", // yellow
-    "#22c55e", // green
-    "#38bdf8", // blue
-    "#a855f7", // purple
-    "#f97373", // red
+    "#f97316",
+    "#facc15",
+    "#22c55e",
+    "#38bdf8",
+    "#a855f7",
+    "#f97373",
   ];
 
   const allDurations = [];
 
   for (let b = 0; b < burstCount; b++) {
-    // Random center for each burst (keep mostly in the middle)
-    const centerX = 25 + Math.random() * 50; // % across width
-    const centerY = 30 + Math.random() * 40; // % down height
+    const centerX = 25 + Math.random() * 50;
+    const centerY = 30 + Math.random() * 40;
 
     for (let i = 0; i < particlesPerBurst; i++) {
       const p = document.createElement("span");
       p.className = "firework-particle";
 
-      // Random radial direction
       const angle = Math.random() * Math.PI * 2;
-      const distance = 90 + Math.random() * 130; // 90–220px
+      const distance = 90 + Math.random() * 130;
 
       const dx = Math.cos(angle) * distance;
       const dy = Math.sin(angle) * distance;
@@ -1218,12 +1119,10 @@ function triggerFireworks() {
       p.style.setProperty("--dx", `${dx}px`);
       p.style.setProperty("--dy", `${dy}px`);
 
-      // Random size
-      const size = 7 + Math.random() * 7; // 7–14px
+      const size = 7 + Math.random() * 7;
       p.style.width = `${size}px`;
       p.style.height = `${size}px`;
 
-      // Color glow variant
       const color = colors[(b + i) % colors.length];
       p.style.background = color;
       p.style.boxShadow = `
@@ -1232,16 +1131,14 @@ function triggerFireworks() {
         0 0 26px ${color}77
       `;
 
-      // Random duration & delay for more organic feel
-      const duration = 750 + Math.random() * 350; // 750–1100ms
-      const delay = Math.random() * 200 + b * 100; // stagger bursts slightly
+      const duration = 750 + Math.random() * 350;
+      const delay = Math.random() * 200 + b * 100;
 
       p.style.animationDuration = `${duration}ms`;
       p.style.animationDelay = `${delay}ms`;
 
       allDurations.push(duration + delay);
 
-      // Place at the chosen burst center
       p.style.left = `${centerX}%`;
       p.style.top = `${centerY}%`;
 
@@ -1249,15 +1146,12 @@ function triggerFireworks() {
     }
   }
 
-  // Turn off overlay after the longest particle finishes
   const maxTotal = Math.max(...allDurations);
   setTimeout(() => {
     overlay.classList.remove("active");
     overlay.innerHTML = "";
   }, maxTotal + 200);
 }
-
-
 
 // ---------- End of Round & Progression ----------
 
@@ -1274,9 +1168,8 @@ function endRound(reason = "normal") {
 
   const requiredGain = getRequiredGainForLevel(level);
 
-  // ✅ Only gate on points now
   const passedScoreGate = levelGain >= requiredGain;
-  const passedMissGate = true; // ignore misses for progression (for now)
+  const passedMissGate = true; // currently unused gate
 
   const wasNewHighScore = finalScore > bestScore;
 
@@ -1325,7 +1218,7 @@ function endRound(reason = "normal") {
         `Level ${nextLevel} target: +${targetNext.toLocaleString()} pts`;
     }
 
-    // Backup: Start button still works to advance
+    // ✅ Backup: Start button still works to advance
     startButton.disabled = false;
     startButton.textContent = `Play Level ${nextLevel}`;
     startButton.onclick = () => startLevel(nextLevel);
@@ -1355,7 +1248,7 @@ function endRound(reason = "normal") {
 
     if (levelGoals) levelGoals.textContent = "";
 
-    // Backup: Start button returns to "Start Game"
+    // ✅ Backup: Start button returns to "Start Game"
     startButton.disabled = false;
     startButton.textContent = "Start Game";
     startButton.onclick = startGame;
@@ -1368,17 +1261,13 @@ function endRound(reason = "normal") {
       roundPoints: levelGain,
       neededPoints: requiredGain,
       misses: missed,
-      retryCredits,  // 👈 pass current value
+      retryCredits, // pass current value
     });
-
   }
 
   // No active run after round ends
   endButton.disabled = true;
 }
-
-
-
 
 // ---------- Leaderboard ----------
 
@@ -1415,7 +1304,6 @@ async function loadLeaderboard() {
         const mins = d.getMinutes().toString().padStart(2, "0");
         const ampm = hours >= 12 ? "p" : "a";
         hours = hours % 12 || 12;
-        // timeText = `${month}/${day} ${hours}:${mins}${ampm}`;
         timeText = `${month}/${day}`;
       }
 
@@ -1426,7 +1314,7 @@ async function loadLeaderboard() {
         <span class="entry-level">Lv ${lvl}</span>
         <span class="entry-time">${timeText}</span>
       `;
-      
+
       fragment.appendChild(div);
     });
 
@@ -1438,14 +1326,12 @@ async function loadLeaderboard() {
 }
 
 async function handleSaveScore() {
-  // Manual retry just reuses auto-save logic
   await autoSaveScoreIfEligible();
 }
 
 // ---------- End Game, Restart, Init ----------
 
 function endGame() {
-  // Only end if a run is active and not already locked
   if (!gameState || gameState.locked) return;
   endRound("quit");
 }
@@ -1473,14 +1359,14 @@ function init() {
   restartButton.disabled = true;
   endButton.disabled = true;
   saveScoreButton.disabled = true;
-  
-  // --- Dynamically update popover leaderboard minimum ---
+
+  // Leaderboard popover min score
   const minScoreSpan = document.getElementById("leaderboardMinScore");
   if (minScoreSpan) {
     minScoreSpan.textContent = MIN_SUBMIT_SCORE.toLocaleString();
   }
 
-  // Initial Level 1 goals before the first game starts (points-only)
+  // Initial Level 1 goals
   if (levelGoals) {
     const initialLevel = 1;
     const target = getRequiredGainForLevel(initialLevel);
@@ -1526,7 +1412,6 @@ function init() {
     if (!popover) return;
     const isVisible = popover.classList.contains("visible");
 
-    // close all first
     [howToPlayInfoPopover, levelGoalsInfoPopover, leaderboardInfoPopover].forEach((p) => {
       if (p) p.classList.remove("visible");
     });
@@ -1557,14 +1442,12 @@ function init() {
     };
   }
 
-  // Click anywhere else closes all popovers
   document.addEventListener("click", () => {
     [howToPlayInfoPopover, levelGoalsInfoPopover, leaderboardInfoPopover].forEach((p) => {
       if (p) p.classList.remove("visible");
     });
   });
 
-  // Prevent clicks inside popovers from closing them
   [howToPlayInfoPopover, levelGoalsInfoPopover, leaderboardInfoPopover].forEach((p) => {
     if (!p) return;
     p.addEventListener("click", (e) => {
@@ -1584,7 +1467,6 @@ function init() {
     if (open) {
       howToPlayContent.classList.add("open");
       howToPlayArrow.classList.add("open");
-      // use scrollHeight for smooth dynamic height
       howToPlayContent.style.maxHeight = howToPlayContent.scrollHeight + "px";
     } else {
       howToPlayContent.classList.remove("open");
@@ -1593,14 +1475,13 @@ function init() {
     }
   }
 
-  // Restore saved state (default: open on first visit)
   let initialOpen = true;
   try {
     const stored = localStorage.getItem(HOW_TO_PLAY_KEY);
     if (stored === "0") initialOpen = false;
     if (stored === "1") initialOpen = true;
   } catch (e) {
-    // ignore if storage not available
+    // ignore
   }
   setHowToPlayOpen(initialOpen);
 
@@ -1613,11 +1494,10 @@ function init() {
       try {
         localStorage.setItem(HOW_TO_PLAY_KEY, nowOpen ? "1" : "0");
       } catch (e2) {
-        // ignore storage errors
+        // ignore
       }
     };
   }
 }
 
 init();
-
