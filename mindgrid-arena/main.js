@@ -226,13 +226,6 @@ function isNameProfane(name) {
 }
 
 
-// Required performance per level
-// function getRequiredGainForLevel(level) {
-//  const base = 80;   // level 1 requirement
-//  const perLevel = 30;
-//  return base + (level - 1) * perLevel;
-// }
-
 // ======================================================
 //  LEVEL GOAL / DIFFICULTY HELPERS (CURVED PROGRESSION)
 // ======================================================
@@ -491,7 +484,7 @@ function startGame() {
     lastTileDelta: 0,
     grid: generateGrid(level),
     timePerTurnMs: difficulty.timePerTurnMs,
-    behavior,          // ⬅️ store it
+    behavior,
     locked: false,
   };
 
@@ -528,7 +521,7 @@ function startLevel(level) {
     lastTileDelta: 0,
     grid: generateGrid(level),
     timePerTurnMs: difficulty.timePerTurnMs,
-    behavior,                     // ⬅️ store it
+    behavior,
     locked: false,
   };
 
