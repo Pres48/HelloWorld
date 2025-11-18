@@ -296,3 +296,13 @@ export function resolveTileSelection(tile, state) {
 
   return newState;
 }
+
+
+
+// Debug helper – OK to remove later
+window.jumpToLevel = function (level) {
+  gameState.level = level;
+  gameState.behavior = getLevelBehavior(level);
+  renderGrid();
+  console.log("Jumped to level", level, gameState.behavior);
+};
