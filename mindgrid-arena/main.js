@@ -659,6 +659,56 @@ function shouldHideRiskValues(level) {
   return behavior.hideRiskValues;
 }
 
+
+function getRandomInt(min, max) {
+  // inclusive min & max
+  return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
+function getRiskDisplayOptions(tile) {
+  // Reuse existing options if we've already generated them
+  if (tile.riskOptions && Array.isArray(tile.riskOptions) && tile.riskOptions.length === 2) {
+    return tile.riskOptions;
+  }
+
+  const actual = tile.value;
+  let decoy;
+
+  if (actual > 0) {
+    // Actual is a reward → decoy is a penalty
+    const maxPenalty = Math.max(5, Math.floor(actual * 0.75));
+    const minPenalty = Math.min(-1, -maxPenalty);
+    decoy = getRandomInt(minPenalty, -1);
+  } else if (actual < 0) {
+    // Actual is a penalty → decoy is a reward
+    const magnitude = Math.abs(actual);
+    const minReward = Math.max(1, Math.floor(magnitude * 0.5));
+    const maxReward = minReward + Math.max(5, Math.floor(magnitude * 0.5));
+    decoy = getRandomInt(minReward, maxReward);
+  } else {
+    // Rare: actual is 0, just pick something non-zero
+    decoy = getRandomInt(-10, 10);
+    if (decoy === 0) decoy = 5;
+  }
+
+  // Make sure they aren't identical
+  if (decoy === actual) {
+    decoy += actual > 0 ? -1 : 1;
+  }
+
+  let pair = [actual, decoy];
+
+  // Randomize order so player can't infer which side is real
+  if (Math.random() < 0.5) {
+    pair.reverse();
+  }
+
+  tile.riskOptions = pair;  // cache on the tile so it stays stable across re-renders
+  return pair;
+}
+
+
+
 function renderGrid() {
   gridContainer.innerHTML = "";
   if (!gameState) return;
@@ -698,8 +748,15 @@ function renderGrid() {
         valueEl.textContent = formatTileDisplay(tile, behavior);
       } else if (tile.type === "risk") {
         if (showLabel) label.textContent = "RISK";
-        // Risk may hide value based on behavior
-        valueEl.textContent = formatTileDisplay(tile, behavior);
+      
+        if (shouldHideRiskValues(gameState.level)) {
+          // Show two possible outcomes, one is the real tile.value
+          const [optA, optB] = getRiskDisplayOptions(tile);
+          valueEl.textContent = `${optA} | ${optB}`;
+        } else {
+          // Normal behavior (show actual value or formatted)
+          valueEl.textContent = formatTileDisplay(tile, behavior);
+        }
       }
 
       const text = valueEl.textContent || "";
