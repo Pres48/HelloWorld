@@ -351,7 +351,7 @@ function openResultModal({
     return;
   }
 
-  const credits = typeof retryCredits === "number" ? retryCredits : window.retryCredits || 0;
+  const credits = typeof retryCredits === "number" ? retryCredits : (window.retryCredits || 0);
 
   // Header text
   if (cleared) {
@@ -407,21 +407,62 @@ function openResultModal({
     }
   }
 
-  // ---- Button visibility ----
-  const showNext = !!cleared;
-  const showNew = !cleared;
-  const canContinue = !cleared && credits > 0;
+// ---- Button wiring & visibility ----
 
-  if (mgBtnNext)     mgBtnNext.classList.toggle("hidden", !showNext);
-  if (mgBtnNew)      mgBtnNew.classList.toggle("hidden", !showNew);
-  if (mgBtnContinue) {
-    mgBtnContinue.classList.toggle("hidden", !canContinue);
-    if (canContinue) {
-      mgBtnContinue.textContent = `Continue (${credits})`;
-    }
+// Primary button behavior
+if (mgBtnNext) {
+  // clear any old handler
+  mgBtnNext.onclick = null;
+
+  if (cleared) {
+    // Level cleared → Start Next Level
+    mgBtnNext.textContent = "Start Next Level";
+    mgBtnNext.classList.remove("hidden");
+    mgBtnNext.onclick = () => {
+      closeResultModal();
+      if (!gameState) return;
+      const nextLevel = gameState.level + 1;
+      startLevel(nextLevel);
+    };
+  } else {
+    // Run over → Start New Game
+    mgBtnNext.textContent = "Start New Game";
+    mgBtnNext.classList.remove("hidden");
+    mgBtnNext.onclick = () => {
+      closeResultModal();
+      restartGame();
+    };
   }
+}
 
-  mgOverlay.classList.remove("hidden");
+// Secondary "Continue" button (only on run over & if credits > 0)
+if (mgBtnContinue) {
+  mgBtnContinue.onclick = null;
+
+  const showContinue = !cleared && credits > 0;
+  mgBtnContinue.classList.toggle("hidden", !showContinue);
+
+  if (showContinue) {
+    mgBtnContinue.textContent = `Continue (${credits})`;
+    mgBtnContinue.onclick = () => {
+      if (!gameState || credits <= 0) return;
+
+      // Spend one credit
+      retryCredits = Math.max(0, (retryCredits || 0) - 1);
+
+      // Reset score to start-of-level for a true retry
+      if (typeof gameState.scoreAtLevelStart === "number") {
+        gameState.score = gameState.scoreAtLevelStart;
+      }
+
+      closeResultModal();
+      startLevel(gameState.level); // retry same level
+    };
+  }
+}
+
+mgOverlay.classList.remove("hidden");
+
 }
 
 
@@ -436,40 +477,6 @@ if (mgBtnClose) {
     closeResultModal();
   });
 }
-
-if (mgBtnNew) {
-  mgBtnNew.addEventListener("click", () => {
-    closeResultModal();
-    restartGame();  // uses your existing restart path (level 1, new run)
-  });
-}
-
-if (mgBtnNext) {
-  mgBtnNext.addEventListener("click", () => {
-    if (!gameState) return;
-    closeResultModal();
-    const nextLevel = gameState.level + 1;
-    startLevel(nextLevel); // existing function
-  });
-}
-
-if (mgBtnContinue) {
-  mgBtnContinue.addEventListener("click", () => {
-    if (!gameState || retryCredits <= 0) return;
-
-    // Spend one credit
-    retryCredits--;
-
-    // Roll score back to start-of-level so it's a true "do-over"
-    if (typeof gameState.scoreAtLevelStart === "number") {
-      gameState.score = gameState.scoreAtLevelStart;
-    }
-
-    closeResultModal();
-    startLevel(gameState.level); // retry same level
-  });
-}
-
 
 
 // ---------- Fairness helpers: ensure each level is beatable ----------
