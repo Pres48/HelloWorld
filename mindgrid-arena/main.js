@@ -713,19 +713,18 @@ function renderGrid() {
       tileEl.appendChild(label);
       tileEl.appendChild(valueEl);
 
-      // ✅ One-click-per-turn guard
+      // 🔒 Lock per turn using a snapshot of the turn index
+      const clickTurnIndex = gameState.turnIndex;  // snapshot when this tile is created
+
       tileEl.onclick = () => {
         if (!gameState) return;
 
-        // If we've already clicked a tile this turn, ignore
-        if (gameState.lastClickTurn === gameState.turnIndex) {
+        // If the game has advanced to a new turn, ignore this click
+        if (gameState.turnIndex !== clickTurnIndex) {
           return;
         }
 
-        // Mark this turn as "used"
-        gameState.lastClickTurn = gameState.turnIndex;
-
-        // Existing click behavior
+        // Normal behavior
         onTileClick(tile);
       };
 
@@ -733,6 +732,7 @@ function renderGrid() {
     });
   });
 }
+
 
 
 
