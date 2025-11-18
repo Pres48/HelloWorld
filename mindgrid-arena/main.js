@@ -488,6 +488,19 @@ function startGame() {
     locked: false,
   };
 
+  // Debug exports
+      window.gameState = gameState;
+      window.getLevelBehavior = getLevelBehavior;
+      window.renderGrid = renderGrid;
+      
+      window.jumpToLevel = function (level) {
+          gameState.level = level;
+          gameState.behavior = getLevelBehavior(level);
+          renderGrid();
+          console.log("Jumped to Level", level, gameState.behavior);
+      };
+      
+
   updateUIFromState();
   updateLevelGoals();
   renderGrid();
