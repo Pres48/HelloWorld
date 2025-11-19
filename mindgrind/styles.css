@@ -468,6 +468,25 @@ body {
 
 .tile.type-number {
   background:
+    radial-gradient(circle at 20% 18%, #ffffffc0 0, transparent 40%),
+    conic-gradient(from 210deg,
+      #ecfeff,
+      #a5f3fc,
+      #a7f3d0,
+      #a5b4fc,
+      #e9d5ff,
+      #ecfeff
+    );
+  color: #020617;
+  box-shadow:
+    0 0 14px rgba(20, 184, 166, 0.95),
+    0 0 32px rgba(59, 130, 246, 0.55);
+}
+
+
+/*
+{
+  background:
     radial-gradient(circle at 22% 18%, #ffffffcc 0%, #ffffff00 45%),
     conic-gradient(
       from 160deg,
@@ -485,7 +504,7 @@ body {
     0 0 22px rgba(139,92,246,0.7),
     inset 0 0 8px rgba(255,255,255,0.5);
 }
-
+*/
 
 .tile.type-bonus {
   background: radial-gradient(circle at 30% 20%, #fef9c3, var(--tile-yellow));
