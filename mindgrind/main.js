@@ -795,6 +795,7 @@ function nextTurn() {
   const now = performance.now();
   const duration = gameState.timePerTurnMs;
   turnDeadline = now + duration;
+  gameState.turnStartTime = now;
   
   // ⏱ remember this turn’s timing
   gameState.currentTurnStartMs = now;
@@ -996,8 +997,10 @@ function onTileClick(tile) {
   if (!gameState || gameState.locked) return;
   if (selectedThisTurn) return;
 
+  // 🚫 If this tile has already been used in this level, ignore it
   if (tile.used) return;
 
+  // ✅ First time this tile is being used in this level
   selectedThisTurn = true;
   tile.used = true;
   setTilesDisabled(true);
