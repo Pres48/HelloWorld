@@ -459,8 +459,9 @@ function openResultModal({
   mgTotalPoints.textContent = totalPoints.toLocaleString();
   mgMisses.textContent      = misses.toLocaleString();
   mgCredits.textContent     = credits.toString();
-  mgTimeBonus.textContent   = `+${timeBonus.toLocaleString()} pts`
-  //mgNextTarget.textContent  = nextLevelNeededPoints.toLocaleString()
+  mgTimeBonus.textContent   = timeBonus.toLocaleString()
+  // mgTimeBonus.textContent   = `+${timeBonus.toLocaleString()} pts`
+  // mgNextTarget.textContent  = nextLevelNeededPoints.toLocaleString()
 
   // Round points + ✓
   const passedLevel = roundPoints >= neededPoints;
@@ -470,13 +471,13 @@ function openResultModal({
 
   // ---- Extra stacked messages ----
   const extraLines = [];
-
+/*
   if (timeBonus && timeBonus > 0) {
     extraLines.push(
       `Speed bonus this level: +${timeBonus.toLocaleString()} pts`
     );
   }
-
+*/
   if (cleared && typeof nextLevelNeededPoints === "number") {
     extraLines.push(
       `Next level target: ${nextLevelNeededPoints.toLocaleString()} pts`
