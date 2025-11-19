@@ -150,23 +150,23 @@ export function getLevelBehavior(level) {
  */
 export function getDifficultyForLevel(level) {
   // New timing curve: more thinking room, smoother ramp
-  // const baseTimeMs = 4200;   // L1 ≈ 4.2s per turn
-  const baseTimeMs = 6200;   // L1 ≈ 6.2s per turn
-  const minTimeMs  = 2200;   // Never go below ~2.2s per turn
+  const baseTimeMs = 6500;   // L1 ≈ 6.5s per turn
+  const minTimeMs  = 2500;   // Never go below ~2.5s per turn
 
-  // Each level shaves off 70ms, until minTimeMs
+  // Each level shaves off XX ms, until minTimeMs
+  const timeStep = 50; // was 70
   const timePerTurnMs = Math.max(
     minTimeMs,
-    baseTimeMs - (level - 1) * 70
+    baseTimeMs - (level - 1) * timeStep
   );
 
-  const gridSize = level >= 30 ? 7 : 6;
+  const gridSize = level >= 32 ? 7 : 6;
   const turns = 8 + Math.min(4, Math.floor(level / 7)); // 8–12 turns
 
   // Tile distribution weights – same as before
   const bonusWeight  = 1 + Math.min(3, Math.floor(level / 4));
   const chainWeight  = 1 + Math.min(3, Math.floor(level / 5));
-  const riskWeight   = 1 + Math.min(4, Math.floor(level / 6));
+  const riskWeight   = 1 + Math.min(2, Math.floor(level / 10));
   const numberWeight = 6;
 
   return {
