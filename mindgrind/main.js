@@ -42,6 +42,8 @@ const mgRoundPoints = document.getElementById("mg-round-points");
 const mgNeeded      = document.getElementById("mg-needed");
 const mgMisses      = document.getElementById("mg-misses");
 const mgCredits     = document.getElementById("mg-credits");
+const mgTimeBonus   = document.getElementById("mg-timebonus");
+const mgNextTarget  = document.getElementById("mg-nexttarget");
 
 const mgBtnNext     = document.getElementById("mg-next");
 const mgBtnNew      = document.getElementById("mg-new");
@@ -457,6 +459,8 @@ function openResultModal({
   mgTotalPoints.textContent = totalPoints.toLocaleString();
   mgMisses.textContent      = misses.toLocaleString();
   mgCredits.textContent     = credits.toString();
+  mgTimeBonus.textContent   = `+${timeBonus.toLocaleString()} pts`
+  mgNextTarget.textContent  = nextLevelNeededPoints.toLocaleString()
 
   // Round points + ✓
   const passedLevel = roundPoints >= neededPoints;
