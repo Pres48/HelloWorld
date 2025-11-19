@@ -1350,6 +1350,9 @@ function endRound(reason = "normal") {
     }
   }
 
+  // 🔹 Refresh UI so scoreDisplay shows the post-bonus total
+  updateUIFromState();
+
   const finalScore = gameState.score;
   const levelGain = finalScore - (gameState.scoreAtLevelStart || 0);
   const missed = gameState.missedTurns || 0;
