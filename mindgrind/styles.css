@@ -812,6 +812,15 @@ button:disabled {
   line-height: 1.4;
 }
 
+.mg-next-target {
+  font-size: 1rem;
+  font-weight: 600;
+  margin: 6px 0 10px;
+  color: #3b82f6; /* nice blue */
+  text-align: center;
+}
+
+
 /* Stats grid */
 .mg-stats {
   display: grid;
