@@ -41,13 +41,13 @@ export const RARITY_TYPES = {
 
 // Special tiles (fixed-value, rare)
 export const RARITY_VALUES = {
-  rare:       75,
-  epic:       100,
-  legend:     150,
-  mythic:     200,
-  relic:      250,
-  exotic:     500,
-  cosmic:     1000,
+  rare:       100,
+  epic:       250,
+  legend:     500,
+  mythic:     1000,
+  relic:      2000,
+  exotic:     5000,
+  cosmic:     10000,
 };
 
 
@@ -174,8 +174,8 @@ export function getLevelBehavior(level) {
  */
 export function getDifficultyForLevel(level) {
   // New timing curve: more thinking room, smoother ramp
-  const baseTimeMs = 6500;   // L1 ≈ 6.5s per turn
-  const minTimeMs  = 2500;   // Never go below ~2.5s per turn
+  const baseTimeMs = 6400;   // L1 ≈ 6.4s per turn
+  const minTimeMs  = 2400;   // Never go below ~2.4s per turn
 
   // Each level shaves off XX ms, until minTimeMs
   const timeStep = 50; // was 70
