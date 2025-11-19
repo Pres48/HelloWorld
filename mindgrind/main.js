@@ -395,24 +395,32 @@ function openResultModal({
   const btnContinue = document.getElementById("mg-continue");
   const btnNewGame  = document.getElementById("mg-new");
 
-  // Clear handlers + hide all + remove color classes
-  [btnNext, btnContinue, btnNewGame].forEach(btn => {
+  // Clear handlers + hide all + remove ALL style classes
+  [btnNext, btnContinue, btnNewGame].forEach((btn) => {
     if (!btn) return;
     btn.onclick = null;
     btn.classList.add("hidden");
-    btn.classList.remove("mg-btn-next", "mg-btn-continue", "mg-btn-newgame");
+    btn.classList.remove(
+      "mg-btn-next",
+      "mg-btn-continue",
+      "mg-btn-newgame",
+      "mg-primary",
+      "mg-secondary"
+    );
   });
 
   // ===== LEVEL CLEARED ================================================
   if (cleared) {
-    btnNext.textContent = "Start Next Level";
-    btnNext.classList.remove("hidden");
-    btnNext.classList.add("mg-btn-next");
+    if (btnNext) {
+      btnNext.textContent = "Start Next Level";
+      btnNext.classList.remove("hidden");
+      btnNext.classList.add("mg-btn-next");
 
-    btnNext.onclick = () => {
-      closeResultModal();
-      startLevel(level + 1);
-    };
+      btnNext.onclick = () => {
+        closeResultModal();
+        startLevel(level + 1);
+      };
+    }
 
     mgOverlay.classList.remove("hidden");
     return;
@@ -422,37 +430,42 @@ function openResultModal({
 
   if (credits > 0) {
     // --------------------------------------------
-    // User has retry credits → ONLY Continue Run
+    // Has retry credits → ONLY Continue Run
     // --------------------------------------------
-    btnContinue.textContent = "Continue Run";
-    btnContinue.classList.remove("hidden");
-    btnContinue.classList.add("mg-btn-continue");
+    if (btnContinue) {
+      btnContinue.textContent = "Continue Run";
+      btnContinue.classList.remove("hidden");
+      btnContinue.classList.add("mg-btn-continue");
 
-    btnContinue.onclick = () => {
-      retryCredits = Math.max(0, retryCredits - 1);
+      btnContinue.onclick = () => {
+        // Spend 1 credit
+        retryCredits = Math.max(0, retryCredits - 1);
 
-      // Keep accumulated score — DO NOT reset
-      closeResultModal();
-      startLevel(level);
-    };
-
+        // Keep accumulated score — DO NOT reset
+        closeResultModal();
+        startLevel(level);
+      };
+    }
   } else {
     // --------------------------------------------
     // No credits → ONLY Start New Game
     // --------------------------------------------
-    btnNext.textContent = "Start New Game";
-    btnNext.classList.remove("hidden");
-    btnNext.classList.add("mg-btn-newgame");
+    if (btnNext) {
+      btnNext.textContent = "Start New Game";
+      btnNext.classList.remove("hidden");
+      btnNext.classList.add("mg-btn-newgame");
 
-    btnNext.onclick = () => {
-      closeResultModal();
-      restartGame();
-    };
+      btnNext.onclick = () => {
+        closeResultModal();
+        restartGame();
+      };
+    }
   }
 
   // Display modal
   mgOverlay.classList.remove("hidden");
 }
+
 
 
 
