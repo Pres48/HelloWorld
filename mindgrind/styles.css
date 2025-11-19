@@ -460,9 +460,30 @@ body {
   transform: translateY(-2px) scale(1.02);
 }
 
+/*
 .tile.type-number {
   background: radial-gradient(circle at 30% 20%, #bfdbfe, var(--tile-blue));
 }
+*/
+
+.tile.type-number {
+  background:
+    radial-gradient(circle at 25% 15%, #ffffffaa 0, transparent 40%),
+    conic-gradient(from 210deg,
+      #ecfeff,
+      #e0f2fe,
+      #ede9fe,
+      #fee2e2,
+      #fef9c3,
+      #d9f99d,
+      #ecfeff
+    );
+  color: #020617;
+  box-shadow:
+    0 0 12px rgba(129, 230, 217, 0.8),
+    0 0 30px rgba(59, 130, 246, 0.4);
+}
+
 
 .tile.type-bonus {
   background: radial-gradient(circle at 30% 20%, #fef9c3, var(--tile-yellow));
