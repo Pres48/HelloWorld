@@ -460,76 +460,16 @@ body {
   transform: translateY(-2px) scale(1.02);
 }
 
-/*
 .tile.type-number {
   background: radial-gradient(circle at 30% 20%, #bfdbfe, var(--tile-blue));
 }
-*/
-
-.tile.type-number {
-  background:
-    radial-gradient(circle at 20% 18%, #ffffffc0 0, transparent 40%),
-    conic-gradient(from 210deg,
-      #ecfeff,
-      #a5f3fc,
-      #a7f3d0,
-      #a5b4fc,
-      #e9d5ff,
-      #ecfeff
-    );
-  color: #020617;
-  box-shadow:
-    0 0 14px rgba(20, 184, 166, 0.95),
-    0 0 32px rgba(59, 130, 246, 0.55);
-}
-
-
-/*
-{
-  background:
-    radial-gradient(circle at 22% 18%, #ffffffcc 0%, #ffffff00 45%),
-    conic-gradient(
-      from 160deg,
-      #a5f3fc,
-      #c7d2fe,
-      #f5d0fe,
-      #fecdd3,
-      #fee2e2,
-      #bae6fd,
-      #a5f3fc
-    );
-
-  box-shadow:
-    0 0 12px rgba(59,130,246,0.85),
-    0 0 22px rgba(139,92,246,0.7),
-    inset 0 0 8px rgba(255,255,255,0.5);
-}
-*/
 
 .tile.type-bonus {
   background: radial-gradient(circle at 30% 20%, #fef9c3, var(--tile-yellow));
 }
-/*
-.tile.type-chain {
-  background: radial-gradient(circle at 30% 20%, #bbf7d0, var(--tile-green));
-}
-*/
 
 .tile.type-chain {
-  background:
-    radial-gradient(circle at 22% 18%, #ffffffc0 0, transparent 40%),
-    conic-gradient(from 210deg,
-      #fee2e2,
-      #e0f2fe,
-      #c4b5fd,
-      #fca5a5,
-      #f5d0fe,
-      #fee2e2
-    );
-  color: #020617;
-  box-shadow:
-    0 0 14px rgba(239, 68, 68, 0.9),
-    0 0 26px rgba(129, 140, 248, 0.6);
+  background: radial-gradient(circle at 30% 20%, #bbf7d0, var(--tile-green));
 }
 
 .tile.type-risk {
@@ -537,129 +477,7 @@ body {
 }
 
 /* === RARITY TILES – HOLOGRAPHIC / PRISM LOOK === */
-/* Make sure your JS uses types: rare, epic, legendary, mythic, relic, exotic, cosmic */
 
-.tile.type-rare {
-  background:
-    radial-gradient(circle at 20% 15%, #ffffffaa 0, transparent 40%),
-    conic-gradient(from 210deg,
-      #e0f2fe,
-      #c7d2fe,
-      #f5d0fe,
-      #a5b4fc,
-      #bae6fd,
-      #e0f2fe
-    );
-  color: #020617;
-  box-shadow:
-    0 0 10px rgba(59, 130, 246, 0.8),
-    0 0 20px rgba(45, 212, 191, 0.5);
-}
-
-.tile.type-epic {
-  background:
-    radial-gradient(circle at 18% 18%, #ffffffbb 0, transparent 38%),
-    conic-gradient(from 200deg,
-      #f5d0fe,
-      #e0f2fe,
-      #c4b5fd,
-      #f472b6,
-      #e9d5ff,
-      #f5d0fe
-    );
-  color: #020617;
-  box-shadow:
-    0 0 12px rgba(168, 85, 247, 0.9),
-    0 0 26px rgba(244, 114, 182, 0.5);
-}
-
-.tile.type-legendary {
-  background:
-    radial-gradient(circle at 22% 20%, #ffffffc0 0, transparent 40%),
-    conic-gradient(from 210deg,
-      #e0f2fe,
-      #fef9c3,
-      #fed7aa,
-      #f5d0fe,
-      #e0f2fe
-    );
-  color: #020617;
-  box-shadow:
-    0 0 12px rgba(251, 191, 36, 0.9),
-    0 0 24px rgba(248, 250, 252, 0.4);
-}
-
-.tile.type-mythic {
-  background:
-    radial-gradient(circle at 22% 18%, #ffffffc0 0, transparent 40%),
-    conic-gradient(from 210deg,
-      #fee2e2,
-      #e0f2fe,
-      #c4b5fd,
-      #fca5a5,
-      #f5d0fe,
-      #fee2e2
-    );
-  color: #020617;
-  box-shadow:
-    0 0 14px rgba(239, 68, 68, 0.9),
-    0 0 26px rgba(129, 140, 248, 0.6);
-}
-
-.tile.type-relic {
-  background:
-    radial-gradient(circle at 20% 18%, #ffffffbf 0, transparent 40%),
-    conic-gradient(from 210deg,
-      #e0f2fe,
-      #c7d2fe,
-      #a5b4fc,
-      #4f46e5,
-      #c4b5fd,
-      #e0f2fe
-    );
-  color: #020617;
-  box-shadow:
-    0 0 14px rgba(79, 70, 229, 0.95),
-    0 0 30px rgba(59, 130, 246, 0.55);
-}
-
-.tile.type-exotic {
-  background:
-    radial-gradient(circle at 20% 18%, #ffffffc0 0, transparent 40%),
-    conic-gradient(from 210deg,
-      #ecfeff,
-      #a5f3fc,
-      #a7f3d0,
-      #a5b4fc,
-      #e9d5ff,
-      #ecfeff
-    );
-  color: #020617;
-  box-shadow:
-    0 0 14px rgba(20, 184, 166, 0.95),
-    0 0 32px rgba(59, 130, 246, 0.55);
-}
-
-.tile.type-cosmic {
-  background:
-    radial-gradient(circle at 22% 16%, #ffffffd0 0, transparent 40%),
-    conic-gradient(from 210deg,
-      #e0f2fe,
-      #a5b4fc,
-      #f5d0fe,
-      #a5f3fc,
-      #bfdbfe,
-      #e0f2fe
-    );
-  color: #020617;
-  box-shadow:
-    0 0 18px rgba(56, 189, 248, 1),
-    0 0 36px rgba(129, 140, 248, 0.7);
-}
-
-
-
-/* Base holographic look for all rarities */
 .tile.type-rare,
 .tile.type-epic,
 .tile.type-legend,
@@ -687,7 +505,6 @@ body {
 }
 
 /* Slightly stronger glow for higher rarities */
-.tile.type-mythic,
 .tile.type-relic,
 .tile.type-exotic,
 .tile.type-cosmic {
