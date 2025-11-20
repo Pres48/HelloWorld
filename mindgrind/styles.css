@@ -96,6 +96,7 @@ body {
   display: flex;
   flex-direction: column;
   gap: 4px;
+  padding-left: 10px;
 }
 
 .player-info label {
