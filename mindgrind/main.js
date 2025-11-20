@@ -33,6 +33,13 @@ const lastMoveDisplay = document.getElementById("lastMoveDisplay");
 const leaderboardList = document.getElementById("leaderboardList");
 const levelGoals = document.getElementById("levelGoals");
 
+const goalProgressDisplay    = document.getElementById("goalProgressDisplay");
+const goalRemainingDisplay   = document.getElementById("goalRemainingDisplay");
+const chainRunDisplay        = document.getElementById("chainRunDisplay");
+const chainMultiplierDisplay = document.getElementById("chainMultiplierDisplay");
+const speedBonusDisplay      = document.getElementById("speedBonusDisplay");
+
+
 // ----- Result Modal Elements -----
 const mgModal       = document.querySelector(".mg-modal");
 const mgOverlay     = document.getElementById("mg-modal-overlay");
@@ -1331,11 +1338,71 @@ function onTileClick(tile) {
 function updateUIFromState() {
   if (!gameState) return;
 
-  levelDisplay.textContent = gameState.level;
-  scoreDisplay.textContent = gameState.score.toLocaleString();
-  multiplierDisplay.textContent = `x${gameState.multiplier.toFixed(2)}`;
+  const {
+    level,
+    score,
+    multiplier,
+    chainCount,
+    scoreAtLevelStart,
+    timeBankMs,
+    turns,
+    timePerTurnMs,
+  } = gameState;
+
+  // ----- PRIMARY STATS -----
+  levelDisplay.textContent = level;
+  multiplierDisplay.textContent = `x${multiplier.toFixed(2)}`;
+  scoreDisplay.textContent = score.toLocaleString();
   updateTurnDisplay();
 
+  // CHAIN: run + its own multiplier (separate from overall multiplier)
+  const chainRun = chainCount || 0;
+
+  if (chainRunDisplay) {
+    chainRunDisplay.textContent =
+      `${chainRun} ${chainRun === 1 ? "tile" : "tiles"}`;
+  }
+
+  if (chainMultiplierDisplay) {
+    const chainMult = gameState.chainMultiplierDisplay || 1;
+    chainMultiplierDisplay.textContent = `x${chainMult.toFixed(2)}`;
+  }
+
+  // ----- SECONDARY STATS -----
+
+  // Level Goal progress: based on level gain vs required gain
+  if (goalProgressDisplay && goalRemainingDisplay) {
+    const targetGain = getRequiredGainForLevel(level);
+    const levelGain = score - (scoreAtLevelStart || 0);
+
+    if (targetGain > 0) {
+      const ratio = Math.max(0, Math.min(1, levelGain / targetGain));
+      const pct = Math.round(ratio * 100);
+
+      goalProgressDisplay.textContent = `${pct}%`;
+
+      const remaining = Math.max(targetGain - levelGain, 0);
+      goalRemainingDisplay.textContent =
+        `Need: ${remaining.toLocaleString()}`;
+    } else {
+      goalProgressDisplay.textContent = "—";
+      goalRemainingDisplay.textContent = "Need: —";
+    }
+  }
+
+  // Time Bonus (potential speed bonus for this level so far)
+  if (speedBonusDisplay) {
+    const currentTimeBank = timeBankMs || 0;
+    const bonus = computeSpeedBonus(
+      level,
+      currentTimeBank,
+      turns,
+      timePerTurnMs
+    );
+    speedBonusDisplay.textContent = `+${bonus.toLocaleString()} pts`;
+  }
+
+  // Last Move display (you already had this styling logic)
   const delta = gameState.lastTileDelta ?? 0;
   let text = delta === 0 ? "0" : delta > 0 ? `+${delta}` : `${delta}`;
   lastMoveDisplay.textContent = text;
@@ -1348,6 +1415,7 @@ function updateUIFromState() {
     lastMoveDisplay.style.color = "#9ca3af";
   }
 }
+
 
 function updateTurnDisplay() {
   if (!gameState) {
