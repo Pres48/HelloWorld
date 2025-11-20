@@ -1072,60 +1072,61 @@ function renderGrid() {
       if (tile.type === "number") {
         if (showLabel) label.textContent = "NUM";
         valueEl.textContent = formatTileDisplay(tile, behavior);
+      
       } else if (tile.type === "bonus") {
         if (showLabel) label.textContent = "BONUS";
         valueEl.textContent = `+x${(tile.value * 0.25).toFixed(2)}`;
+      
       } else if (tile.type === "chain") {
         if (showLabel) label.textContent = "CHAIN";
         valueEl.textContent = formatTileDisplay(tile, behavior);
-      } else if (tile.type === "risk") {
-        if (showLabel) label.textContent = "RISK";
       
+      } else if (tile.type === "risk") {
+      
+        if (showLabel) label.textContent = "RISK";
         const lvl = gameState.level;
       
-        // --- 71+ : pure mystery, UI shows only "??" ------------------------
         if (lvl >= 71) {
           valueEl.textContent = "??";
-        }
-        // --- 51–70 : masked pair, but logic differs inside getRiskDisplayOptions ---
-        else if (shouldHideRiskValues(lvl)) {
+      
+        } else if (shouldHideRiskValues(lvl)) {
           const [optA, optB] = getRiskDisplayOptions(tile, lvl);
+          // Your 51–70 masked pair logic remains here
           valueEl.textContent = `${optA} | ${optB}`;
-        }
-        // --- earlier levels: show concrete value/equation ------------------
-        else {
+      
+        } else {
+          // earlier levels just show true value/equation
           valueEl.textContent = formatTileDisplay(tile, behavior);
         }
-        // ==== RARITY TILE RENDERING ====
-        else if (tile.type === "rare") {
-          if (showLabel) label.textContent = "RARE";
-          valueEl.textContent = tile.value;
-        
-        } else if (tile.type === "epic") {
-          if (showLabel) label.textContent = "EPIC";
-          valueEl.textContent = tile.value;
-        
-        } else if (tile.type === "legend") {
-          if (showLabel) label.textContent = "LEGEND";
-          valueEl.textContent = tile.value;
-        
-        } else if (tile.type === "mythic") {
-          if (showLabel) label.textContent = "MYTHIC";
-          valueEl.textContent = tile.value;
-        
-        } else if (tile.type === "relic") {
-          if (showLabel) label.textContent = "RELIC";
-          valueEl.textContent = tile.value;
-        
-        } else if (tile.type === "exotic") {
-          if (showLabel) label.textContent = "EXOTIC";
-          valueEl.textContent = tile.value;
-        
-        } else if (tile.type === "cosmic") {
-          if (showLabel) label.textContent = "COSMIC";
-          valueEl.textContent = tile.value;
-        }
-
+      
+      } else if (tile.type === "rare") {
+        if (showLabel) label.textContent = "RARE";
+        valueEl.textContent = tile.value;
+      
+      } else if (tile.type === "epic") {
+        if (showLabel) label.textContent = "EPIC";
+        valueEl.textContent = tile.value;
+      
+      } else if (tile.type === "legend") {
+        if (showLabel) label.textContent = "LEGEND";
+        valueEl.textContent = tile.value;
+      
+      } else if (tile.type === "mythic") {
+        if (showLabel) label.textContent = "MYTHIC";
+        valueEl.textContent = tile.value;
+      
+      } else if (tile.type === "relic") {
+        if (showLabel) label.textContent = "RELIC";
+        valueEl.textContent = tile.value;
+      
+      } else if (tile.type === "exotic") {
+        if (showLabel) label.textContent = "EXOTIC";
+        valueEl.textContent = tile.value;
+      
+      } else if (tile.type === "cosmic") {
+        if (showLabel) label.textContent = "COSMIC";
+        valueEl.textContent = tile.value;
+      }
 
       const text = valueEl.textContent || "";
       if (text.length >= 5) {
