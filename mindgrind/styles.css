@@ -34,9 +34,7 @@ body {
   min-height: 100vh;
   display: flex;
   justify-content: center;
-  /* padding: 16px; */
-  padding-top: 16px;
-  padding-bottom: 16px;
+  padding: 16px;
 }
 
 .app {
@@ -994,6 +992,12 @@ button:disabled {
 /* Responsive */
 
 @media (max-width: 800px) {
+
+  body {
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+  
   .game-layout {
     grid-template-columns: minmax(0, 1fr);
   }
@@ -1004,6 +1008,11 @@ button:disabled {
 }
 
 @media (max-width: 480px) {
+
+  body {
+    padding: 0 !important;
+    margin: 0 !important;
+  }
 
   /* --- Existing --- */
   .message-controls-row {
