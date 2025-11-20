@@ -74,12 +74,6 @@
     
         <!-- SECONDARY / INSIGHT STATS -->
         <div class="stats-row secondary-stats">
-          <!-- 1) Goal progress -->
-          <div class="stat">
-            <span class="label">Level Goal</span>
-            <span class="value" id="goalProgressDisplay">0 / 0 pts (0%)</span>
-            <span class="subvalue" id="goalRemainingDisplay">Need 0 more</span>
-          </div>
     
           <!-- 2) Hit accuracy -->
           <div class="stat">
@@ -94,7 +88,21 @@
             <span class="value" id="reactionAvgDisplay">0.00s avg</span>
             <span class="subvalue" id="reactionBestDisplay">Fastest: 0.00s</span>
           </div>
-    
+
+          <!-- 6) Speed bonus earned -->
+          <div class="stat">
+            <span class="label">Speed Bonus</span>
+            <span class="value" id="speedBonusDisplay">+0 pts</span>
+            <span class="subvalue">This level so far</span>
+          </div>
+
+          <!-- 1) Goal progress -->
+          <div class="stat">
+            <span class="label">Level Goal</span>
+            <span class="value" id="goalProgressDisplay">0%</span>
+            <span class="subvalue" id="goalRemainingDisplay">Need: 0</span>
+          </div>
+          
           <!-- 4) Tile-type mix -->
           <div class="stat">
             <span class="label">Tile Mix</span>
@@ -113,12 +121,6 @@
             <span class="subvalue">Rare · Epic · Legend · Mythic · Exotic · Relic · Cosmic</span>
           </div>
     
-          <!-- 6) Speed bonus earned -->
-          <div class="stat">
-            <span class="label">Speed Bonus</span>
-            <span class="value" id="speedBonusDisplay">+0 pts</span>
-            <span class="subvalue">This level so far</span>
-          </div>
         </div>
   
         <!-- TIMER -->
