@@ -1095,6 +1095,10 @@ function onTileClick(tile) {
   if (el) {
     el.classList.add("selected");
 
+    // immediately mark/dim this tile
+    el.classList.add("tile-used");
+    el.disabled = true;
+
     if (tile.type === "risk" && shouldHideRiskValues(gameState.level)) {
       const valueSpan = el.querySelector(".tile-value");
       if (valueSpan) {
