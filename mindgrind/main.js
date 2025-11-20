@@ -956,16 +956,13 @@ function getRiskDisplayOptions(tile, level) {
     const sign = actual >= 0 ? 1 : -1;
     const actualMag = Math.max(5, Math.abs(actual));
 
-    // ensure some separation, at least 10 difference in magnitude
     const minDiff = 10;
     const maxDiff = Math.max(minDiff + 5, Math.floor(actualMag * 0.8));
     const diff = getRandomInt(minDiff, maxDiff);
 
-    // randomly decide whether decoy is bigger or smaller in magnitude
     const bigger = Math.random() < 0.5;
     let decoyMag = bigger ? actualMag + diff : Math.max(1, actualMag - diff);
 
-    // avoid identical magnitude just in case
     if (decoyMag === actualMag) {
       decoyMag += 5;
     }
@@ -973,7 +970,6 @@ function getRiskDisplayOptions(tile, level) {
     const decoy = sign * decoyMag;
     let pair = [actual, decoy];
 
-    // randomize A | B order so position isn't a tell
     if (Math.random() < 0.5) pair.reverse();
 
     tile.riskOptions = pair;
@@ -984,17 +980,14 @@ function getRiskDisplayOptions(tile, level) {
   if (level >= 61 && level <= 70) {
     const actualMag = Math.max(5, Math.abs(actual));
 
-    // opposite sign for the decoy
     const decoySign = actual >= 0 ? -1 : 1;
 
-    // magnitude somewhere around the actual (sometimes bigger, sometimes smaller)
     const minFactor = 0.6;
     const maxFactor = 1.6;
     const factor = minFactor + Math.random() * (maxFactor - minFactor);
     let decoyMag = Math.round(actualMag * factor);
     if (decoyMag < 1) decoyMag = 1;
 
-    // avoid identical magnitude
     if (decoyMag === actualMag) {
       decoyMag += 5;
     }
@@ -1002,8 +995,6 @@ function getRiskDisplayOptions(tile, level) {
     const decoy = decoySign * decoyMag;
     let pair = [actual, decoy];
 
-    // randomize order; sometimes the larger number is the decoy,
-    // sometimes the smaller is the decoy → no obvious pattern
     if (Math.random() < 0.5) pair.reverse();
 
     tile.riskOptions = pair;
@@ -1011,7 +1002,6 @@ function getRiskDisplayOptions(tile, level) {
   }
 
   // --- DEFAULT: existing behavior for earlier levels (<= 50) -----------------
-  const actual = tile.value;
   let decoy;
 
   if (actual > 0) {
@@ -1043,6 +1033,7 @@ function getRiskDisplayOptions(tile, level) {
 }
 
 
+
 function renderGrid() {
   gridContainer.innerHTML = "";
   if (!gameState) return;
@@ -1072,57 +1063,59 @@ function renderGrid() {
       if (tile.type === "number") {
         if (showLabel) label.textContent = "NUM";
         valueEl.textContent = formatTileDisplay(tile, behavior);
-      
+
       } else if (tile.type === "bonus") {
         if (showLabel) label.textContent = "BONUS";
         valueEl.textContent = `+x${(tile.value * 0.25).toFixed(2)}`;
-      
+
       } else if (tile.type === "chain") {
         if (showLabel) label.textContent = "CHAIN";
         valueEl.textContent = formatTileDisplay(tile, behavior);
-      
+
       } else if (tile.type === "risk") {
-      
         if (showLabel) label.textContent = "RISK";
+
         const lvl = gameState.level;
-      
+
+        // 71+ : show only "??"
         if (lvl >= 71) {
           valueEl.textContent = "??";
-      
-        } else if (shouldHideRiskValues(lvl)) {
+        }
+        // 51–70 : masked pair, but logic lives inside getRiskDisplayOptions
+        else if (shouldHideRiskValues(lvl)) {
           const [optA, optB] = getRiskDisplayOptions(tile, lvl);
-          // Your 51–70 masked pair logic remains here
           valueEl.textContent = `${optA} | ${optB}`;
-      
-        } else {
-          // earlier levels just show true value/equation
+        }
+        // earlier levels: show concrete value/equation
+        else {
           valueEl.textContent = formatTileDisplay(tile, behavior);
         }
-      
+
+      // ==== RARITY TILE RENDERING ====
       } else if (tile.type === "rare") {
         if (showLabel) label.textContent = "RARE";
         valueEl.textContent = tile.value;
-      
+
       } else if (tile.type === "epic") {
         if (showLabel) label.textContent = "EPIC";
         valueEl.textContent = tile.value;
-      
+
       } else if (tile.type === "legend") {
         if (showLabel) label.textContent = "LEGEND";
         valueEl.textContent = tile.value;
-      
+
       } else if (tile.type === "mythic") {
         if (showLabel) label.textContent = "MYTHIC";
         valueEl.textContent = tile.value;
-      
+
       } else if (tile.type === "relic") {
         if (showLabel) label.textContent = "RELIC";
         valueEl.textContent = tile.value;
-      
+
       } else if (tile.type === "exotic") {
         if (showLabel) label.textContent = "EXOTIC";
         valueEl.textContent = tile.value;
-      
+
       } else if (tile.type === "cosmic") {
         if (showLabel) label.textContent = "COSMIC";
         valueEl.textContent = tile.value;
