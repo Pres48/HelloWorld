@@ -43,7 +43,8 @@
 
     <main class="game-layout">
       <section class="game-panel">
-        <div class="stats-row">
+        <!-- PRIMARY STATS -->
+        <div class="stats-row primary-stats">
           <div class="stat">
             <span class="label">Level</span>
             <span class="value" id="levelDisplay">1</span>
@@ -60,20 +61,78 @@
             <span class="label">Multiplier</span>
             <span class="value" id="multiplierDisplay">x1.0</span>
           </div>
+    
+          <!-- NEW: Chain run + its own multiplier (separate from overall multiplier) -->
+          <div class="stat">
+            <span class="label">Chain</span>
+            <span class="value" id="chainRunDisplay">0 tiles</span>
+            <span class="subvalue" id="chainMultiplierDisplay">Chain Mult: x1.0</span>
+          </div>
+    
           <div class="stat">
             <span class="label">Last Move</span>
             <span class="value" id="lastMoveDisplay">0</span>
           </div>
         </div>
-        
+    
+        <!-- TIMER -->
         <div class="timer-bar">
           <div class="timer-fill" id="timerFill"></div>
         </div>
-
-        <div class="message-controls-row">
-          <div class="message" id="messageArea">
-            Click "Start Game" to begin.
+    
+        <!-- SECONDARY / INSIGHT STATS -->
+        <div class="stats-row secondary-stats">
+          <!-- 1) Goal progress -->
+          <div class="stat">
+            <span class="label">Level Goal</span>
+            <span class="value" id="goalProgressDisplay">0 / 0 pts (0%)</span>
+            <span class="subvalue" id="goalRemainingDisplay">Need 0 more</span>
           </div>
+    
+          <!-- 2) Hit accuracy -->
+          <div class="stat">
+            <span class="label">Accuracy</span>
+            <span class="value" id="accuracyDisplay">0%</span>
+            <span class="subvalue" id="accuracyDetailDisplay">0 hits / 0 taps</span>
+          </div>
+    
+          <!-- 3) Reaction time -->
+          <div class="stat">
+            <span class="label">Reaction</span>
+            <span class="value" id="reactionAvgDisplay">0.00s avg</span>
+            <span class="subvalue" id="reactionBestDisplay">Fastest: 0.00s</span>
+          </div>
+    
+          <!-- 4) Tile-type mix -->
+          <div class="stat">
+            <span class="label">Tile Mix</span>
+            <span class="value" id="tileMixDisplay">
+              N: 0 · B: 0 · C: 0 · R: 0
+            </span>
+            <span class="subvalue">Number · Bonus · Chain · Risk</span>
+          </div>
+    
+          <!-- 5) Rarity mix -->
+          <div class="stat">
+            <span class="label">Rarity</span>
+            <span class="value" id="rarityMixDisplay">
+              Ra: 0 · Ep: 0 · Le: 0 · My: 0 · Ex: 0 · Re: 0 · Co: 0
+            </span>
+            <span class="subvalue">Rare · Epic · Legend · Mythic · Exotic · Relic · Cosmic</span>
+          </div>
+    
+          <!-- 6) Speed bonus earned -->
+          <div class="stat">
+            <span class="label">Speed Bonus</span>
+            <span class="value" id="speedBonusDisplay">+0 pts</span>
+            <span class="subvalue">This level so far</span>
+          </div>
+        </div>
+
+    <div class="message-controls-row">
+      <div class="message" id="messageArea">
+        Click "Start Game" to begin.
+      </div>
         
           <div class="controls-row">
             <button id="startButton">Start Game</button>
