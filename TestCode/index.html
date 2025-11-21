@@ -2,60 +2,75 @@
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>My Web Page</title>
-
+  <title>Mini Maze Game</title>
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      background: #f2f2f2;
-      margin: 0;
-      padding: 0;
-      text-align: center;
-    }
-
-    header {
-      background: #4a90e2;
-      color: white;
-      padding: 20px;
-      font-size: 28px;
-      font-weight: bold;
-    }
-
-    .content {
-      margin-top: 30px;
-      font-size: 20px;
-    }
-
-    button {
-      padding: 12px 24px;
-      font-size: 18px;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-      background-color: #4a90e2;
-      color: white;
-      margin-top: 20px;
-    }
-
-    button:hover {
-      background-color: #3a78c2;
+    canvas {
+      background: #eee;
+      display: block;
+      margin: 30px auto;
+      border: 3px solid black;
     }
   </style>
 </head>
 
 <body>
+  <h1 style="text-align:center;">Mini Maze Game</h1>
+  <canvas id="game" width="400" height="400"></canvas>
 
-  <header>
-    Welcome to My Web Page!
-  </header>
+  <script>
+    const canvas = document.getElementById("game");
+    const ctx = canvas.getContext("2d");
 
-  <div class="content">
-    <p>Hello! This is my first GitHub Pages website.</p>
+    let player = { x: 20, y: 20, size: 20 };
+    let walls = [
+      {x:0, y:100, w:300, h:20},
+      {x:100, y:200, w:300, h:20},
+      {x:0, y:300, w:300, h:20}
+    ];
 
-    <button onclick="alert('Thanks for clicking!')">
-      Click Me
-    </button>
-  </div>
+    function draw() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
 
+      // draw player
+      ctx.fillStyle = "blue";
+      ctx.fillRect(player.x, player.y, player.size, player.size);
+
+      // draw walls
+      ctx.fillStyle = "black";
+      walls.forEach(w => ctx.fillRect(w.x, w.y, w.w, w.h));
+
+      requestAnimationFrame(draw);
+    }
+
+    function move(dx, dy) {
+      const newX = player.x + dx;
+      const newY = player.y + dy;
+      const newBox = {x:newX, y:newY, size:player.size};
+
+      // check collision
+      for (let w of walls) {
+        if (
+          newBox.x < w.x + w.w &&
+          newBox.x + newBox.size > w.x &&
+          newBox.y < w.y + w.h &&
+          newBox.y + newBox.size > w.y
+        ) {
+          return; // blocked
+        }
+      }
+
+      player.x = newX;
+      player.y = newY;
+    }
+
+    document.addEventListener("keydown", e => {
+      if (e.key === "ArrowUp") move(0, -10);
+      if (e.key === "ArrowDown") move(0, 10);
+      if (e.key === "ArrowLeft") move(-10, 0);
+      if (e.key === "ArrowRight") move(10, 0);
+    });
+
+    draw();
+  </script>
 </body>
 </html>
