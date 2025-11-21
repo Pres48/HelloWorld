@@ -1231,7 +1231,7 @@ button:disabled {
 }
 
 .howto-section ul {
-  /*margin: 0 0 4px 1.1rem;*/
+  margin: 0 0 4px 1.1rem;
   font-size: 0.8rem;
   color: var(--text-soft);
   padding: 0;
