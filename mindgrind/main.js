@@ -23,8 +23,7 @@ const messageArea = document.getElementById("messageArea");
 const startButton = document.getElementById("startButton");
 const endButton = document.getElementById("endButton");
 const restartButton = document.getElementById("restartButton");
-const playerNameInput = document.getElementById("playerNameInput");
-const playerNameHelper = document.getElementById("playerNameHelper");
+
 const bestScoreDisplay = document.getElementById("bestScoreDisplay");
 const bestLevelDisplay = document.getElementById("bestLevelDisplay");
 const saveScoreButton = document.getElementById("saveScoreButton");
@@ -194,6 +193,89 @@ const RARITY_MESSAGES = {
 const openHowToPlayBtn   = document.getElementById("openHowToPlay");
 const howToPlayBackdrop  = document.getElementById("howToPlayBackdrop");
 const closeHowToPlayBtn  = document.getElementById("closeHowToPlay");
+
+const nameDialogOverlay = document.getElementById("nameDialogOverlay");
+const nameDialogInput   = document.getElementById("nameDialogInput");
+const nameDialogSave    = document.getElementById("nameDialogSave");
+const nameDialogCancel  = document.getElementById("nameDialogCancel");
+
+// Load cached player name (supports old key + new key)
+let cachedPlayerName = null;
+try {
+  cachedPlayerName =
+    localStorage.getItem("mg_player_name") ||
+    localStorage.getItem("mindgrindPlayerName") ||
+    null;
+
+  // Normalize to the new key going forward
+  if (cachedPlayerName) {
+    localStorage.setItem("mg_player_name", cachedPlayerName);
+  }
+} catch (e) {
+  cachedPlayerName = null;
+}
+
+function promptForPlayerName() {
+  return new Promise((resolve) => {
+    if (!nameDialogOverlay || !nameDialogInput) {
+      // Fallback if dialog isn't present
+      resolve(null);
+      return;
+    }
+
+    nameDialogOverlay.classList.remove("hidden");
+    nameDialogInput.value = cachedPlayerName || "";
+    nameDialogInput.focus();
+
+    function cleanup(result) {
+      nameDialogOverlay.classList.add("hidden");
+      nameDialogSave.removeEventListener("click", onSave);
+      nameDialogCancel.removeEventListener("click", onCancel);
+      nameDialogInput.removeEventListener("keydown", onKeyDown);
+      resolve(result);
+    }
+
+    function onSave() {
+      let name = (nameDialogInput.value || "").trim();
+      if (!name) {
+        // Simple inline feedback: just refocus for now
+        nameDialogInput.focus();
+        return;
+      }
+
+      if (isNameProfane(name)) {
+        alert(
+          "That name isn't allowed on the public leaderboard. Please choose a different one."
+        );
+        nameDialogInput.focus();
+        return;
+      }
+
+      cachedPlayerName = name;
+      try {
+        localStorage.setItem("mg_player_name", name);
+      } catch (e) {
+        // ignore storage errors
+      }
+      cleanup(name);
+    }
+
+    function onCancel() {
+      cleanup(null);
+    }
+
+    function onKeyDown(e) {
+      if (e.key === "Enter") onSave();
+      if (e.key === "Escape") onCancel();
+    }
+
+    nameDialogSave.addEventListener("click", onSave);
+    nameDialogCancel.addEventListener("click", onCancel);
+    nameDialogInput.addEventListener("keydown", onKeyDown);
+  });
+}
+
+
 
 function openHowToPlay() {
   if (!howToPlayBackdrop) return;
@@ -837,16 +919,6 @@ function resetTimer() {
   turnDeadline = null;
 }
 
-function setNameWarningActive(active) {
-  if (!playerNameInput || !playerNameHelper) return;
-  if (active) {
-    playerNameHelper.classList.add("warning");
-    playerNameInput.classList.add("name-warning");
-  } else {
-    playerNameHelper.classList.remove("warning");
-    playerNameInput.classList.remove("name-warning");
-  }
-}
 
 // ---------- Core Game ----------
 
@@ -1493,40 +1565,48 @@ async function autoSaveScoreIfEligible() {
 
   const finalScore = gameState.score;
 
+  // Must hit minimum score to even be considered
   if (finalScore < MIN_SUBMIT_SCORE) {
     saveScoreButton.disabled = true;
-    saveStatus.textContent = `Reach at least ${MIN_SUBMIT_SCORE} points to appear on the global leaderboard.`;
+    saveStatus.textContent = `Reach at least ${MIN_SUBMIT_SCORE.toLocaleString()} points to appear on the global leaderboard.`;
     saveStatus.style.color = "#9ca3af";
     return;
   }
 
+  // Don’t re-save if we’ve already saved this run at a higher/equal score
   if (finalScore <= currentRunSavedScore) {
     return;
   }
 
-  const rawName =
-    playerNameInput && playerNameInput.value ? playerNameInput.value : "";
-  const trimmed = rawName.trim();
+  // Get name to use — either cached or via dialog
+  let nameToUse = cachedPlayerName;
 
-  if (finalScore >= HIGH_SCORE_NAME_WARN_THRESHOLD && trimmed.length === 0) {
-    saveStatus.textContent =
-      "Enter a name to save this high score on the public leaderboard.";
-    saveStatus.style.color = "#f97373";
-    saveScoreButton.disabled = false;
-    setNameWarningActive(true);
-    return;
+  if (!nameToUse) {
+    saveStatus.textContent = "New high score! Enter a name to appear on the leaderboard…";
+    saveStatus.style.color = "#9ca3af";
+
+    // Ask player for a name
+    const chosenName = await promptForPlayerName();
+
+    if (!chosenName) {
+      // Player closed or skipped dialog; allow manual retry later
+      saveStatus.textContent = "Score not saved. Tap 'Retry Save' if you want to add a name and submit.";
+      saveStatus.style.color = "#9ca3af";
+      saveScoreButton.disabled = false;
+      return;
+    }
+
+    nameToUse = chosenName;
   }
 
-  if (trimmed && isNameProfane(trimmed)) {
+  // Last profanity guard in case cached name was set long ago
+  if (isNameProfane(nameToUse)) {
     saveStatus.textContent =
       "That name isn't allowed on the public leaderboard. Please choose a different one.";
     saveStatus.style.color = "#f97373";
     saveScoreButton.disabled = false;
-    setNameWarningActive(true);
     return;
   }
-
-  const nameToUse = trimmed || "Guest";
 
   saveScoreButton.disabled = true;
   saveStatus.textContent = "Saving to leaderboard…";
@@ -1554,6 +1634,7 @@ async function autoSaveScoreIfEligible() {
     saveScoreButton.disabled = false;
   }
 }
+
 
 // ---------- Fireworks ----------
 
@@ -1893,7 +1974,7 @@ function init() {
 
   // Restore player name from previous visit, if any
   try {
-    const savedName = localStorage.getItem("mindgridPlayerName");
+    const savedName = localStorage.getItem("mindgrindPlayerName");
     if (savedName && typeof savedName === "string" && playerNameInput) {
       playerNameInput.value = savedName;
     }
@@ -1911,15 +1992,16 @@ function init() {
 
       try {
         if (trimmed.length === 0) {
-          localStorage.removeItem("mindgridPlayerName");
+          localStorage.removeItem("mindgrindPlayerName");
         } else {
-          localStorage.setItem("mindgridPlayerName", trimmed);
+          localStorage.setItem("mindgrindPlayerName", trimmed);
         }
       } catch (e) {
         console.warn("Name save skipped (localStorage unavailable):", e);
       }
     });
   }
+
 
   // Load leaderboard on page load
   loadLeaderboard();
@@ -1976,7 +2058,7 @@ function init() {
   const howToPlayToggle = document.getElementById("howToPlayToggle");
   const howToPlayContent = document.getElementById("howToPlayContent");
   const howToPlayArrow = document.getElementById("howToPlayArrow");
-  const HOW_TO_PLAY_KEY = "mindgridHowToPlayOpen";
+  const HOW_TO_PLAY_KEY = "mindgrindHowToPlayOpen";
 
   function setHowToPlayOpen(open) {
     if (!howToPlayContent || !howToPlayArrow) return;
