@@ -88,12 +88,11 @@ function moveBall() {
 }
 
 function gameLoop() {
-    if (gameRunning) {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        drawMaze();
-        moveBall();
-        drawBall();
-    }
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    drawMaze();
+    if (gameRunning) moveBall();
+    drawBall();
+
     requestAnimationFrame(gameLoop);
 }
 
