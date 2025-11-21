@@ -1,76 +1,132 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <meta charset="UTF-8">
-  <title>Mini Maze Game</title>
-  <style>
-    canvas {
-      background: #eee;
-      display: block;
-      margin: 30px auto;
-      border: 3px solid black;
-    }
-  </style>
+<meta charset="UTF-8" />
+<title>Mini Maze Game</title>
+
+<style>
+  body {
+    background: #222;
+    display: flex;
+    justify-content: center;
+    margin-top: 20px;
+  }
+
+  canvas {
+    background: #ffffff;
+    border: 4px solid black;
+  }
+</style>
 </head>
 
 <body>
-  <h1 style="text-align:center;">Mini Maze Game</h1>
-  <canvas id="game" width="400" height="400"></canvas>
 
-  <script>
-    const canvas = document.getElementById("game");
-    const ctx = canvas.getContext("2d");
+<canvas id="maze" width="500" height="500"></canvas>
 
-    let player = { x: 20, y: 20, size: 20 };
-    let walls = [
-      {x:0, y:100, w:300, h:20},
-      {x:100, y:200, w:300, h:20},
-      {x:0, y:300, w:300, h:20}
-    ];
+<script>
+// ----- Canvas Setup -----
+const canvas = document.getElementById("maze");
+const ctx = canvas.getContext("2d");
 
-    function draw() {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
+// Player square
+let player = {
+  x: 40,
+  y: 450,
+  size: 20,
+  speed: 3
+};
 
-      // draw player
-      ctx.fillStyle = "blue";
-      ctx.fillRect(player.x, player.y, player.size, player.size);
+// Maze walls (x, y, width, height)
+const walls = [
+  {x: 0, y: 400, w: 350, h: 20},
+  {x: 350, y: 200, w: 20, h: 220},
+  {x: 150, y: 100, w: 220, h: 20},
+  {x: 150, y: 100, w: 20, h: 320},
+  {x: 0, y: 0, w: 150, h: 20},
+  {x: 130, y: 0, w: 20, h: 100}
+];
 
-      // draw walls
-      ctx.fillStyle = "black";
-      walls.forEach(w => ctx.fillRect(w.x, w.y, w.w, w.h));
+// Start line
+const startLine = { x: 0, y: 470, w: 200, h: 20 };
 
-      requestAnimationFrame(draw);
+// Finish line
+const finishLine = { x: 400, y: 0, w: 100, h: 20 };
+
+// ----- Drawing the Maze -----
+function drawMaze() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  // Draw walls
+  ctx.fillStyle = "black";
+  walls.forEach(w => ctx.fillRect(w.x, w.y, w.w, w.h));
+
+  // Draw Start Line
+  ctx.fillStyle = "green";
+  ctx.fillRect(startLine.x, startLine.y, startLine.w, startLine.h);
+  ctx.font = "20px Arial";
+  ctx.fillText("START", startLine.x + 10, startLine.y - 5);
+
+  // Draw Finish Line
+  ctx.fillStyle = "red";
+  ctx.fillRect(finishLine.x, finishLine.y, finishLine.w, finishLine.h);
+  ctx.fillText("FINISH", finishLine.x + 10, finishLine.y + 35);
+
+  // Draw Player
+  ctx.fillStyle = "blue";
+  ctx.fillRect(player.x, player.y, player.size, player.size);
+}
+
+// ----- Collision Check -----
+function rectCollision(a, b) {
+  return (
+    a.x < b.x + b.w &&
+    a.x + a.size > b.x &&
+    a.y < b.y + b.h &&
+    a.y + a.size > b.y
+  );
+}
+
+// ----- Movement -----
+let keys = {};
+
+document.addEventListener("keydown", e => keys[e.key] = true);
+document.addEventListener("keyup", e => keys[e.key] = false);
+
+function movePlayer() {
+  let oldX = player.x;
+  let oldY = player.y;
+
+  if (keys["ArrowUp"]) player.y -= player.speed;
+  if (keys["ArrowDown"]) player.y += player.speed;
+  if (keys["ArrowLeft"]) player.x -= player.speed;
+  if (keys["ArrowRight"]) player.x += player.speed;
+
+  // Collision check with walls
+  for (let w of walls) {
+    if (rectCollision(player, w)) {
+      player.x = oldX;
+      player.y = oldY;
+      break;
     }
+  }
 
-    function move(dx, dy) {
-      const newX = player.x + dx;
-      const newY = player.y + dy;
-      const newBox = {x:newX, y:newY, size:player.size};
+  // Check Finish Line
+  if (rectCollision(player, finishLine)) {
+    setTimeout(() => {
+      alert("🎉 YOU WIN! 🎉");
+    }, 50);
+  }
+}
 
-      // check collision
-      for (let w of walls) {
-        if (
-          newBox.x < w.x + w.w &&
-          newBox.x + newBox.size > w.x &&
-          newBox.y < w.y + w.h &&
-          newBox.y + newBox.size > w.y
-        ) {
-          return; // blocked
-        }
-      }
+// ----- Game Loop -----
+function gameLoop() {
+  movePlayer();
+  drawMaze();
+  requestAnimationFrame(gameLoop);
+}
 
-      player.x = newX;
-      player.y = newY;
-    }
+gameLoop();
+</script>
 
-    document.addEventListener("keydown", e => {
-      if (e.key === "ArrowUp") move(0, -10);
-      if (e.key === "ArrowDown") move(0, 10);
-      if (e.key === "ArrowLeft") move(-10, 0);
-      if (e.key === "ArrowRight") move(10, 0);
-    });
-
-    draw();
-  </script>
 </body>
 </html>
