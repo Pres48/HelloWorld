@@ -188,10 +188,15 @@ export function getDifficultyForLevel(level) {
   const turns = 8 + Math.min(4, Math.floor(level / 8)); // 8–12 turns (max)
 
   // Tile distribution weights – same as before
-  const bonusWeight  = 1 + Math.min(3, Math.floor(level / 4));
-  const chainWeight  = 1 + Math.min(3, Math.floor(level / 5));
-  const riskWeight   = 1 + Math.min(2, Math.floor(level / 10));
-  const numberWeight = 6;
+  // const bonusWeight  = 1 + Math.min(3, Math.floor(level / 4));
+  // const chainWeight  = 1 + Math.min(3, Math.floor(level / 5));
+  // const riskWeight   = 1 + Math.min(2, Math.floor(level / 10));
+  // const numberWeight = 6;
+
+  const bonusWeight  = 2 + Math.min(2, Math.floor(level / 20));
+  const chainWeight  = 2 + Math.min(2, Math.floor(level / 25));
+  const riskWeight   = 1 + Math.min(1, Math.floor(level / 30));
+  const numberWeight = 10;
 
   return {
     timePerTurnMs,
