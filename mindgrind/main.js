@@ -970,18 +970,46 @@ function resetTimer() {
   turnDeadline = null;
 }
 
+function setStartButtonVisual(mode) {
+  if (!startButton) return;
+
+  startButton.classList.add("mg-btn");
+  startButton.classList.remove("mg-btn-next", "mg-btn-newgame", "mg-btn-endgame");
+
+  if (mode === "next") {
+    startButton.classList.add("mg-btn-next");
+  } else if (mode === "new") {
+    startButton.classList.add("mg-btn-newgame");
+  } else if (mode === "end") {
+    startButton.classList.add("mg-btn-endgame");
+  }
+}
+
+function setEndButtonVisual(enabled) {
+  if (!endButton) return;
+
+  endButton.classList.add("mg-btn");
+  endButton.classList.remove("mg-btn-endgame");
+
+  if (enabled) {
+    endButton.classList.add("mg-btn-endgame");
+  }
+}
+
+
+
 
 // ---------- Core Game ----------
 
 function startGame() {
   const level = 1;
-
-  // New run → clear current run leaderboard tracking
   currentRunScoreId = null;
   currentRunSavedScore = 0;
 
   const difficulty = getDifficultyForLevel(level);
   const behavior = getLevelBehavior(level);
+
+  setEndButtonVisual(true);
 
   gameState = {
     level,
@@ -1057,9 +1085,10 @@ function startGame() {
 
 function startLevel(level) {
   const prevScore = gameState ? gameState.score : 0;
-
   const difficulty = getDifficultyForLevel(level);
   const behavior = getLevelBehavior(level);
+
+  setEndButtonVisual(true);
 
   gameState = {
     level,
@@ -1819,7 +1848,11 @@ function endRound(reason = "normal") {
     startButton.disabled = false;
     startButton.textContent = "Start Game";
     startButton.onclick = startGame;
+    setStartButtonVisual("new");
+
     endButton.disabled = true;
+    setEndButtonVisual(false);
+
     if (levelGoals) levelGoals.textContent = "";
     return;
   }
@@ -1858,6 +1891,7 @@ function endRound(reason = "normal") {
     startButton.disabled = false;
     startButton.textContent = `Play Level ${nextLevel}`;
     startButton.onclick = () => startLevel(nextLevel);
+    setStartButtonVisual("next");   // 🔹 same look as “Next Level” modal button
 
     // Show modal for "Level Cleared"
     openResultModal({
@@ -1900,6 +1934,8 @@ function endRound(reason = "normal") {
     startButton.disabled = false;
     startButton.textContent = "Start Game";
     startButton.onclick = startGame;
+    setStartButtonVisual("new");    // 🔹 same look as “Start New Game”
+
 
     // Show modal for "Run Over"
     openResultModal({
@@ -1916,6 +1952,8 @@ function endRound(reason = "normal") {
 
   // No active run after round ends
   endButton.disabled = true;
+  setEndButtonVisual(false);
+
 }
 
 // ---------- Leaderboard ----------
@@ -1989,11 +2027,16 @@ function restartGame() {
   resetTimer();
   startButton.disabled = true;
   startButton.textContent = "Start Game";
+  setStartButtonVisual("new");  // keep it in “new game” style while disabled
   saveStatus.textContent = "";
   saveStatus.style.color = "";
+  
   endButton.disabled = true;
+  setEndButtonVisual(false);
+
   startGame();
 }
+
 
 function init() {
   // Main buttons
@@ -2007,7 +2050,14 @@ function init() {
   bestLevelDisplay.textContent = "–";
   restartButton.disabled = true;
   endButton.disabled = true;
+  setEndButtonVisual(false);   // grey/disabled look
+  setStartButtonVisual("new"); // normal Start Game style
+
+  
   saveScoreButton.disabled = true;
+
+  // 🔹 Make Start look like “Start New Game” initially
+  setStartButtonVisual("new");
 
   // 🔹 Show a preview board on load
   renderIdleGrid();
