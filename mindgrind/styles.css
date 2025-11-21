@@ -1108,7 +1108,8 @@ button:disabled {
 
 /* Default “Start Game / Start New Game” look */
 .main-cta-primary {
-  background: linear-gradient(180deg, #7c83ff 0%, #4c20db 100%);
+  /*background: linear-gradient(180deg, #7c83ff 0%, #4c20db 100%);*/
+  background: linear-gradient(135deg, #2563eb, #3b82f6);
   color: #ffffff;
   box-shadow: 0 0 14px rgba(124, 131, 255, 0.45);
 }
@@ -1120,7 +1121,8 @@ button:disabled {
 
 /* “Play Level X” look (green, like your screenshot) */
 .main-cta-next {
-  background: linear-gradient(180deg, #7ce843 0%, #4ac02d 100%);
+  /*background: linear-gradient(180deg, #7ce843 0%, #4ac02d 100%);*/
+  background: linear-gradient(180deg, #7ce843 0%, #4cc02b 100%);
   color: #02140b;
   box-shadow: 0 0 14px rgba(124, 232, 67, 0.45);
 }
@@ -1138,9 +1140,10 @@ button:disabled {
 }
 
 .main-cta-danger:hover:enabled {
+  background: #bb2f2f;
   transform: translateY(-1px);
   box-shadow: 0 0 14px rgba(248, 113, 113, 0.65);
-  background: #bb2f2f;
+  
 }
 
 /* Disabled state just dims */
