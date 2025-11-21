@@ -107,6 +107,7 @@ body {
 .player-info {
   display: flex;
   flex-direction: column;
+  max-width: 50%;
   gap: 4px;
   padding-left: 10px;
 }
