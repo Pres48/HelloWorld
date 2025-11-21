@@ -97,6 +97,7 @@ body {
   display: block;
   font-size: 14px;
   font-weight: 400;
+  text-transform: capitalize;
   opacity: 0.8;
   line-height: 1.1;
   margin-top: -2px; /* adjust as needed */
