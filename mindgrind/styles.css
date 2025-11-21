@@ -990,6 +990,97 @@ button:disabled {
 }
 
 
+.howto-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.78); /* slate-ish overlay */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 999;
+}
+
+.howto-backdrop[hidden] {
+  display: none;
+}
+
+.howto-modal {
+  max-width: 720px;
+  width: 90%;
+  max-height: 90vh;
+  background: #0b1120;
+  color: #e5e7eb;
+  border-radius: 14px;
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.7);
+  padding: 20px 24px;
+  overflow-y: auto;
+}
+
+.howto-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.howto-header h2 {
+  font-size: 1.3rem;
+  margin: 0;
+}
+
+.icon-button.howto-button,
+.close-button {
+  border: none;
+  background: #1e293b;
+  color: #e5e7eb;
+  width: 32px;
+  height: 32px;
+  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.icon-button.howto-button:hover,
+.close-button:hover {
+  background: #334155;
+}
+
+.howto-body {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  font-size: 0.9rem;
+}
+
+.howto-section h3 {
+  margin: 8px 0 4px;
+  font-size: 1rem;
+  color: #e5e7eb;
+}
+
+.howto-section ul {
+  margin: 0 0 4px 1.1rem;
+  padding: 0;
+}
+
+.howto-section li {
+  margin-bottom: 4px;
+}
+
+/* Mobile tweak: modal closer to full-screen */
+@media (max-width: 600px) {
+  .howto-modal {
+    width: 96%;
+    height: 92vh;
+    max-height: none;
+    border-radius: 10px;
+  }
+}
+
+
 /* Responsive */
 
 @media (max-width: 800px) {
@@ -1096,96 +1187,3 @@ button:disabled {
     width: 100%;
   }
 }
-
-
-.howto-backdrop {
-  position: fixed;
-  inset: 0;
-  background: rgba(15, 23, 42, 0.78); /* slate-ish overlay */
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 999;
-}
-
-.howto-backdrop[hidden] {
-  display: none;
-}
-
-.howto-modal {
-  max-width: 720px;
-  width: 90%;
-  max-height: 90vh;
-  background: #0b1120;
-  color: #e5e7eb;
-  border-radius: 14px;
-  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.7);
-  padding: 20px 24px;
-  overflow-y: auto;
-}
-
-.howto-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  margin-bottom: 12px;
-}
-
-.howto-header h2 {
-  font-size: 1.3rem;
-  margin: 0;
-}
-
-.icon-button.howto-button,
-.close-button {
-  border: none;
-  background: #1e293b;
-  color: #e5e7eb;
-  width: 32px;
-  height: 32px;
-  border-radius: 999px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-}
-
-.icon-button.howto-button:hover,
-.close-button:hover {
-  background: #334155;
-}
-
-.howto-body {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  font-size: 0.9rem;
-}
-
-.howto-section h3 {
-  margin: 8px 0 4px;
-  font-size: 1rem;
-  color: #e5e7eb;
-}
-
-.howto-section ul {
-  margin: 0 0 4px 1.1rem;
-  padding: 0;
-}
-
-.howto-section li {
-  margin-bottom: 4px;
-}
-
-/* Mobile tweak: modal closer to full-screen */
-@media (max-width: 600px) {
-  .howto-modal {
-    width: 96%;
-    height: 92vh;
-    max-height: none;
-    border-radius: 10px;
-  }
-}
-
-
