@@ -1087,18 +1087,6 @@ button:disabled {
   margin-bottom: 4px;
 }
 
-
-/* Mobile tweak: modal closer to full-screen 
-@media (max-width: 600px) {
-  .howto-modal {
-    width: 96%;
-    height: 92vh;
-    max-height: none;
-    border-radius: 10px;
-  }
-}
-*/
-
 /* Responsive */
 
 @media (max-width: 800px) {
@@ -1124,6 +1112,13 @@ button:disabled {
     margin: 0 !important;
   }
 
+  .howto-modal {
+    width: 96%;
+    height: 92vh;
+    max-height: none;
+    border-radius: 10px;
+  }
+  
   /* --- Existing --- */
   .message-controls-row {
     flex-direction: column;
