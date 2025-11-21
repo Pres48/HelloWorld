@@ -2,84 +2,75 @@
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>Start & Finish Lines</title>
-
+  <title>Mini Maze Game</title>
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      background: #e9f1ff;
-      margin: 0;
-      padding: 0;
-      text-align: center;
-    }
-
-    h1 {
-      padding: 20px;
-      background: #4a90e2;
-      color: white;
-      margin: 0;
-    }
-
-    .track {
-      margin: 40px auto;
-      width: 80%;
-      height: 400px;
-      border: 4px solid #333;
-      background: #fff;
-      position: relative;
-      border-radius: 12px;
-    }
-
-    .start-line, .finish-line {
-      position: absolute;
-      width: 100%;
-      height: 10px;
-      left: 0;
-    }
-
-    .start-line {
-      top: 40px;
-      background: green;
-    }
-
-    .finish-line {
-      bottom: 40px;
-      background: red;
-    }
-
-    .label {
-      position: absolute;
-      left: 50%;
-      transform: translateX(-50%);
-      font-size: 22px;
-      font-weight: bold;
-    }
-
-    .start-label {
-      top: 5px;
-      color: green;
-    }
-
-    .finish-label {
-      bottom: 5px;
-      color: red;
+    canvas {
+      background: #eee;
+      display: block;
+      margin: 30px auto;
+      border: 3px solid black;
     }
   </style>
 </head>
 
 <body>
+  <h1 style="text-align:center;">Mini Maze Game</h1>
+  <canvas id="game" width="400" height="400"></canvas>
 
-  <h1>Race Track</h1>
+  <script>
+    const canvas = document.getElementById("game");
+    const ctx = canvas.getContext("2d");
 
-  <div class="track">
-    <!-- START -->
-    <div class="start-line"></div>
-    <div class="label start-label">START</div>
+    let player = { x: 20, y: 20, size: 20 };
+    let walls = [
+      {x:0, y:100, w:300, h:20},
+      {x:100, y:200, w:300, h:20},
+      {x:0, y:300, w:300, h:20}
+    ];
 
-    <!-- FINISH -->
-    <div class="finish-line"></div>
-    <div class="label finish-label">FINISH</div>
-  </div>
+    function draw() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
 
+      // draw player
+      ctx.fillStyle = "blue";
+      ctx.fillRect(player.x, player.y, player.size, player.size);
+
+      // draw walls
+      ctx.fillStyle = "black";
+      walls.forEach(w => ctx.fillRect(w.x, w.y, w.w, w.h));
+
+      requestAnimationFrame(draw);
+    }
+
+    function move(dx, dy) {
+      const newX = player.x + dx;
+      const newY = player.y + dy;
+      const newBox = {x:newX, y:newY, size:player.size};
+
+      // check collision
+      for (let w of walls) {
+        if (
+          newBox.x < w.x + w.w &&
+          newBox.x + newBox.size > w.x &&
+          newBox.y < w.y + w.h &&
+          newBox.y + newBox.size > w.y
+        ) {
+          return; // blocked
+        }
+      }
+
+      player.x = newX;
+      player.y = newY;
+    }
+
+    document.addEventListener("keydown", e => {
+      if (e.key === "ArrowUp") move(0, -10);
+      if (e.key === "ArrowDown") move(0, 10);
+      if (e.key === "ArrowLeft") move(-10, 0);
+      if (e.key === "ArrowRight") move(10, 0);
+    });
+
+    draw();
+  </script>
 </body>
 </html>
