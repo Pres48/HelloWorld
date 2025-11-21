@@ -1964,7 +1964,7 @@ async function loadLeaderboard() {
   leaderboardList.innerHTML = `<p class="soft-text">Loading…</p>`;
 
   try {
-    const rows = await fetchTopScores(10);
+    const rows = await fetchTopScores();
 
     if (!rows || rows.length === 0) {
       leaderboardList.innerHTML = `<p class="soft-text">No scores yet. Be the first!</p>`;
