@@ -92,11 +92,15 @@ body {
   color: #e5e7eb;
 }
 
-.brand-subtitle {
-  font-weight: 500;
-  letter-spacing: 0.04em;
-  font-size: 0.75rem;
-  color: #e5e7eb;
+.brand-title::after {
+  content: "Tile Tactics";
+  display: block;
+  font-size: 14px;
+  font-weight: 400;
+  opacity: 0.8;
+  line-height: 1.1;
+  margin-top: -2px; /* adjust as needed */
+  font-style: italic; /* or choose a subtitle style */
 }
 
 .player-info {
