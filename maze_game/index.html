@@ -3,150 +3,167 @@
 <head>
 <meta charset="UTF-8">
 <title>Maze Game</title>
+
 <style>
   body {
-    background: #e8e8e8;
+    background: #ddd;
     display: flex;
     justify-content: center;
     margin-top: 20px;
+    font-family: Arial, sans-serif;
   }
 
-  #maze {
-    position: relative;
-    width: 500px;
-    height: 500px;
+  canvas {
     background: white;
     border: 4px solid black;
   }
 
-  .wall {
-    position: absolute;
-    background: black;
-  }
-
-  #player {
-    position: absolute;
-    width: 18px;
-    height: 18px;
-    background: red;
-    top: 20px;
-    left: 20px;
-  }
-
-  #start {
-    position: absolute;
-    top: 0;
-    left: 10px;
-    font-size: 20px;
+  #status {
+    font-size: 24px;
     font-weight: bold;
-    color: green;
-  }
-
-  #finish {
-    position: absolute;
-    bottom: 0;
-    right: 10px;
-    font-size: 20px;
-    font-weight: bold;
-    color: blue;
+    margin-top: 20px;
+    text-align: center;
   }
 </style>
 </head>
-
 <body>
 
-<div id="maze">
-
-  <div id="start">START</div>
-  <div id="finish">FINISH</div>
-
-  <div id="player"></div>
-
-  <!-- OUTER BORDER (keeps player inside) -->
-  <div class="wall" style="top:0; left:0; width:500px; height:10px;"></div>
-  <div class="wall" style="bottom:0; left:0; width:500px; height:10px;"></div>
-  <div class="wall" style="top:0; left:0; width:10px; height:500px;"></div>
-  <div class="wall" style="top:0; right:0; width:10px; height:500px;"></div>
-
-  <!-- INTERNAL MAZE WALLS (one real path with two turns) -->
-  
-  <!-- First vertical wall -->
-  <div class="wall" style="top:50px; left:120px; width:10px; height:350px;"></div>
-
-  <!-- Dead-end trap -->
-  <div class="wall" style="top:100px; left:120px; width:150px; height:10px;"></div>
-
-  <!-- Horizontal wall forcing turn #1 -->
-  <div class="wall" style="top:300px; left:120px; width:260px; height:10px;"></div>
-
-  <!-- Second vertical wall (forces turn #2) -->
-  <div class="wall" style="top:150px; left:380px; width:10px; height:300px;"></div>
-
-  <!-- Dead-end horizontal trick -->
-  <div class="wall" style="top:200px; left:250px; width:140px; height:10px;"></div>
-
-</div>
+<canvas id="maze" width="600" height="600"></canvas>
 
 <script>
-const player = document.getElementById("player");
-const maze = document.getElementById("maze");
-const walls = document.getElementsByClassName("wall");
+const canvas = document.getElementById("maze");
+const ctx = canvas.getContext("2d");
 
-let x = 20;
-let y = 20;
-const speed = 3;
+const player = { x: 40, y: 40, size: 14 };
 
-document.addEventListener("keydown", (e) => {
-  let newX = x;
-  let newY = y;
+const walls = [];
 
-  if (e.key === "ArrowUp") newY -= speed;
-  if (e.key === "ArrowDown") newY += speed;
-  if (e.key === "ArrowLeft") newX -= speed;
-  if (e.key === "ArrowRight") newX += speed;
+// QUICK WALL BUILDER
+function W(x, y, w, h) { walls.push({x,y,w,h}); }
 
-  const playerRect = {
-    left: newX,
-    top: newY,
-    right: newX + 18,
-    bottom: newY + 18
-  };
+// **********************
+//     BORDER WALLS
+// **********************
+W(0,0,600,10);
+W(0,0,10,600);
+W(590,0,10,600);
+W(0,590,600,10);
 
-  let blocked = false;
+// **********************
+//     MAZE WALLS
+// (Tight turns everywhere but one valid path)
+// **********************
 
-  for (let wall of walls) {
-    const rect = wall.getBoundingClientRect();
-    const mazeRect = maze.getBoundingClientRect();
+// Entrance corridor
+W(10,80,200,10);
+W(200,10,10,80);
 
-    const wallRect = {
-      left: rect.left - mazeRect.left,
-      top: rect.top - mazeRect.top,
-      right: rect.right - mazeRect.left,
-      bottom: rect.bottom - mazeRect.top
-    };
+// First fork area
+W(100,80,10,150);
+W(50,220,150,10);
+W(50,120,10,100);
 
-    if (
-      playerRect.right > wallRect.left &&
-      playerRect.left < wallRect.right &&
-      playerRect.bottom > wallRect.top &&
-      playerRect.top < wallRect.bottom
-    ) {
-      blocked = true;
-      break;
+// Twisting mid-maze
+W(150,120,10,200);
+W(150,320,200,10);
+W(350,120,10,200);
+W(200,120,150,10);
+W(200,200,150,10);
+W(200,200,10,130);
+
+// Snake path to bottom-left
+W(80,350,250,10);
+W(80,350,10,150);
+W(80,490,300,10);
+W(370,350,10,150);
+W(250,350,10,140);
+
+// Tight zigzags
+W(420,150,10,300);
+W(420,150,120,10);
+W(480,150,10,240);
+W(480,380,100,10);
+
+// Final corridor to exit
+W(350,500,10,90);
+W(350,500,200,10);
+W(540,400,10,200);
+W(450,400,100,10);
+
+// **********************
+// START & FINISH LABELS
+// **********************
+function drawLabels() {
+  ctx.fillStyle = "green";
+  ctx.font = "20px Arial";
+  ctx.fillText("START", 20, 30);
+
+  ctx.fillStyle = "red";
+  ctx.fillText("FINISH", 520, 570);
+}
+
+// FINISH ZONE
+const finishZone = { x: 520, y: 540, w: 60, h: 60 };
+
+function drawMaze() {
+  ctx.clearRect(0,0,600,600);
+
+  // Draw walls
+  ctx.fillStyle = "black";
+  for (let w of walls) {
+    ctx.fillRect(w.x, w.y, w.w, w.h);
+  }
+
+  // Draw finish
+  ctx.fillStyle = "red";
+  ctx.fillRect(finishZone.x, finishZone.y, finishZone.w, finishZone.h);
+
+  drawLabels();
+
+  // Draw player
+  ctx.fillStyle = "blue";
+  ctx.fillRect(player.x, player.y, player.size, player.size);
+}
+
+function collides(nx, ny) {
+  const p = {x:nx, y:ny, w:player.size, h:player.size};
+  for (let w of walls) {
+    if (p.x < w.x + w.w &&
+        p.x + p.w > w.x &&
+        p.y < w.y + w.h &&
+        p.y + p.h > w.y) {
+      return true;
     }
   }
+  return false;
+}
 
-  if (!blocked) {
-    x = newX;
-    y = newY;
-    player.style.left = x + "px";
-    player.style.top = y + "px";
+document.addEventListener("keydown", e => {
+  let nx = player.x;
+  let ny = player.y;
+
+  if (e.key === "ArrowUp") ny -= 5;
+  if (e.key === "ArrowDown") ny += 5;
+  if (e.key === "ArrowLeft") nx -= 5;
+  if (e.key === "ArrowRight") nx += 5;
+
+  if (!collides(nx, ny)) {
+    player.x = nx;
+    player.y = ny;
   }
 
-  if (x > 430 && y > 430) {
-    alert("🎉 You reached the FINISH line!");
+  // Check finish
+  if (player.x > finishZone.x &&
+      player.y > finishZone.y) {
+    alert("🎉 YOU WIN!");
+    player.x = 40;
+    player.y = 40;
   }
+
+  drawMaze();
 });
+
+drawMaze();
 </script>
 
 </body>
