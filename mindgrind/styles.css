@@ -332,6 +332,7 @@ body {
 
 .tile.idle-tile {
   cursor: default;
+  opacity: 0.9; /* subtle difference from live tiles */
 }
 
 .idle-tile.type-rare,
