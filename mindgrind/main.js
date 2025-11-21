@@ -306,6 +306,57 @@ if (openHowToPlayBtn && howToPlayBackdrop && closeHowToPlayBtn) {
   });
 }
 
+function renderIdleGrid() {
+  if (!gridContainer) return;
+
+  // Use your real level 1 generator so size & mix match the game
+  const previewGrid = generateGrid(1);
+  if (!previewGrid || !previewGrid.length) return;
+
+  const size = previewGrid.length;         // e.g., 6 for a 6x6
+  const totalTiles = size * size;
+
+  // Force exactly one rarity tile
+  const rarityTypes = ["rare", "epic", "legend", "mythic", "relic", "exotic", "cosmic"];
+  const chosenRarity = rarityTypes[Math.floor(Math.random() * rarityTypes.length)];
+  const rarityIndex = Math.floor(Math.random() * totalTiles);  // 0..(size*size-1)
+
+  gridContainer.innerHTML = "";
+  gridContainer.style.gridTemplateColumns = `repeat(${size}, minmax(0, 1fr))`;
+
+  let flatIndex = 0;
+
+  previewGrid.forEach((row) => {
+    row.forEach((tile) => {
+      // Use the real tile type, unless this is the one we turn into a rarity
+      let type = tile.type;
+      if (flatIndex === rarityIndex) {
+        type = chosenRarity;
+      }
+      flatIndex++;
+
+      const tileEl = document.createElement("button");
+      tileEl.className = `tile type-${type} idle-tile`;
+      tileEl.disabled = true; // no interaction on idle grid
+
+      const label = document.createElement("span");
+      label.className = "tile-label";
+
+      const valueEl = document.createElement("span");
+      valueEl.className = "tile-value";
+
+      // Idle board = pure color / frame only
+      label.textContent = "";
+      valueEl.textContent = "";
+
+      tileEl.appendChild(label);
+      tileEl.appendChild(valueEl);
+      gridContainer.appendChild(tileEl);
+    });
+  });
+}
+
+
 
 function pickRandom(arr) {
   if (!arr || arr.length === 0) return "";
@@ -1957,6 +2008,9 @@ function init() {
   restartButton.disabled = true;
   endButton.disabled = true;
   saveScoreButton.disabled = true;
+
+  // 🔹 Show a preview board on load
+  renderIdleGrid();
 
   // Leaderboard popover min score
   const minScoreSpan = document.getElementById("leaderboardMinScore");
