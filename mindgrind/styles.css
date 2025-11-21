@@ -1036,8 +1036,8 @@ button:disabled {
   margin: 0;
 }
 
-.icon-button.howto-button,
-.close-button {
+.icon-button.howto-button2,
+.close-button2 {
   border: none;
   background: #1e293b;
   color: #e5e7eb;
@@ -1048,6 +1048,22 @@ button:disabled {
   align-items: center;
   justify-content: center;
   cursor: pointer;
+
+.icon-button.howto-button,
+.close-button {
+  width: 18px;
+  height: 18px;
+  border-radius: 999px;
+  border: 1px solid rgba(148, 163, 184, 0.8);
+  background: #020617;
+  color: #e5e7eb;
+  font-size: 0.7rem;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  padding: 0;
 }
 
 .icon-button.howto-button:hover,
