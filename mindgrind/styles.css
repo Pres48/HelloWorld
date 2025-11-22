@@ -1208,13 +1208,23 @@ button:disabled {
 }
 
 .info-btn:hover {
+  /*
     background: rgba(45, 60, 110, 0.75);
     box-shadow:
         0 0 12px rgba(96, 165, 250, 0.65),
         0 0 4px rgba(59, 130, 246, 0.85);
 
     transform: translateY(-1px);
+  */
+    background: radial-gradient(circle at top left, #2563eb, #020617);
+    border-color: rgba(129, 140, 248, 0.9);
+    box-shadow:
+      0 0 10px rgba(59, 130, 246, 0.7),
+      0 0 25px rgba(79, 70, 229, 0.4);
+    transform: translateY(-1px);
 }
+
+
 
 .info-btn:active {
     transform: scale(0.95);
