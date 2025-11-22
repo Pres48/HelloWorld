@@ -1120,8 +1120,8 @@ button:disabled {
 
 /* Default “Continue from Previous” look */
 .main-cta-secondary {
-  background: linear-gradient(135deg, #6d28d9, #8b5cf6)
-  color: #ffffff;
+  background: linear-gradient(180deg, #7ce843 0%, #4cc02b 100%);
+  color: #02140b;
   box-shadow: 0 0 14px rgba(124, 131, 255, 0.45);
 }
 
@@ -1133,7 +1133,6 @@ button:disabled {
 
 /* “Play Level X” look (green, like your screenshot) */
 .main-cta-next {
-  /*background: linear-gradient(180deg, #7ce843 0%, #4ac02d 100%);*/
   background: linear-gradient(180deg, #7ce843 0%, #4cc02b 100%);
   color: #02140b;
   box-shadow: 0 0 14px rgba(124, 232, 67, 0.45);
