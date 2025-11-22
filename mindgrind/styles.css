@@ -1108,7 +1108,6 @@ button:disabled {
 
 /* Default “Start Game / Start New Game” look */
 .main-cta-primary {
-  /*background: linear-gradient(180deg, #7c83ff 0%, #4c20db 100%);*/
   background: linear-gradient(135deg, #2563eb, #3b82f6);
   color: #ffffff;
   box-shadow: 0 0 14px rgba(124, 131, 255, 0.45);
@@ -1118,6 +1117,19 @@ button:disabled {
   transform: translateY(-1px);
   box-shadow: 0 0 18px rgba(124, 131, 255, 0.6);
 }
+
+/* Default “Continue from Previous” look */
+.main-cta-secondary {
+  background: linear-gradient(135deg, #6d28d9, #8b5cf6)
+  color: #ffffff;
+  box-shadow: 0 0 14px rgba(124, 131, 255, 0.45);
+}
+
+.main-cta-secondary:hover:enabled {
+  transform: translateY(-1px);
+  box-shadow: 0 0 18px rgba(124, 131, 255, 0.6);
+}
+
 
 /* “Play Level X” look (green, like your screenshot) */
 .main-cta-next {
