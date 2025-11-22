@@ -27,7 +27,15 @@
         <img class="logo-img" src="MindGrind_logo.png" alt="Mind Grind logo">
         <span class="brand-title">Mind Grind:</span>
       </div>
-    
+
+      <!-- NEW: User status pill -->
+      <div class="user-status" id="userStatus">
+        <span id="userStatusText">Playing as Guest</span>
+        <button type="button" class="user-auth-btn" id="userAuthButton">
+          Sign In
+        </button>
+      </div>
+  
       <div class="top-bar-actions">
         <!-- Other controls (sound, menu, etc.) -->
         <button
@@ -366,6 +374,64 @@
   </div>
 </div>
   
+
+<!-- AUTH MODAL -->
+<div id="authModalOverlay" class="auth-overlay hidden">
+  <div class="auth-modal" id="authModal">
+    <header class="auth-header">
+      <h2 id="authTitle">Sign In</h2>
+      <button
+        type="button"
+        class="auth-close"
+        id="authCloseButton"
+        aria-label="Close sign in"
+      >
+        ✕
+      </button>
+    </header>
+
+    <div class="auth-mode-toggle">
+      <button
+        type="button"
+        id="authModeLogin"
+        class="auth-mode-tab auth-mode-tab--active"
+      >
+        Log In
+      </button>
+      <button
+        type="button"
+        id="authModeSignup"
+        class="auth-mode-tab"
+      >
+        Create Account
+      </button>
+    </div>
+
+    <div class="auth-body">
+      <label class="auth-field">
+        <span>Email</span>
+        <input id="authEmail" type="email" autocomplete="email" />
+      </label>
+
+      <label class="auth-field">
+        <span>Password</span>
+        <input id="authPassword" type="password" autocomplete="current-password" />
+      </label>
+
+      <p id="authError" class="auth-error"></p>
+    </div>
+
+    <footer class="auth-footer">
+      <button type="button" id="authCancelButton" class="auth-secondary">
+        Cancel
+      </button>
+      <button type="button" id="authPrimaryButton" class="auth-primary">
+        Log In
+      </button>
+    </footer>
+  </div>
+</div>
+
 
 </body>
 </html>
