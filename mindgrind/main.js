@@ -9,7 +9,18 @@ import {
 } from "./game.js";
 
 
-import { saveScoreToSupabase, fetchTopScores } from "./supabaseClient.js";
+// import { saveScoreToSupabase, fetchTopScores } from "./supabaseClient.js";
+import {
+  supabase,
+  saveScoreToSupabase,
+  fetchTopScores,
+  getCurrentUser,
+  ensureProfileForCurrentUser,
+  login,
+  signup,
+  logout,
+} from "./supabaseClient.js";
+
 
 // ---------- DOM ELEMENTS ----------
 
@@ -37,6 +48,26 @@ const goalRemainingDisplay   = document.getElementById("goalRemainingDisplay");
 const chainRunDisplay        = document.getElementById("chainRunDisplay");
 const chainMultiplierDisplay = document.getElementById("chainMultiplierDisplay");
 const speedBonusDisplay      = document.getElementById("speedBonusDisplay");
+
+// --- Auth / user UI elements ---
+const userStatusText   = document.getElementById("userStatusText");
+const userAuthButton   = document.getElementById("userAuthButton");
+
+const authModalOverlay   = document.getElementById("authModalOverlay");
+const authTitle          = document.getElementById("authTitle");
+const authModeLogin      = document.getElementById("authModeLogin");
+const authModeSignup     = document.getElementById("authModeSignup");
+const authEmailInput     = document.getElementById("authEmail");
+const authPasswordInput  = document.getElementById("authPassword");
+const authErrorText      = document.getElementById("authError");
+const authCancelButton   = document.getElementById("authCancelButton");
+const authPrimaryButton  = document.getElementById("authPrimaryButton");
+const authCloseButton    = document.getElementById("authCloseButton");
+
+// Auth state
+let currentUser = null;
+let currentProfile = null;
+let authMode = "login"; // "login" | "signup"
 
 
 // ----- Result Modal Elements -----
@@ -1646,47 +1677,54 @@ async function autoSaveScoreIfEligible() {
 
   const finalScore = gameState.score;
 
-  // Must hit minimum score to even be considered
   if (finalScore < MIN_SUBMIT_SCORE) {
     saveScoreButton.disabled = true;
-    saveStatus.textContent = `Reach at least ${MIN_SUBMIT_SCORE.toLocaleString()} points to save to the global leaderboard.`;
+    saveStatus.textContent = `Reach at least ${MIN_SUBMIT_SCORE.toLocaleString()} points to appear on the global leaderboard.`;
     saveStatus.style.color = "#9ca3af";
     return;
   }
 
-  // Don’t re-save if we’ve already saved this run at a higher/equal score
   if (finalScore <= currentRunSavedScore) {
     return;
   }
 
-  // Get name to use — either cached or via dialog
-  let nameToUse = cachedPlayerName;
+  // 1) Prefer profile display name if logged in
+  let nameToUse = null;
+  if (currentProfile && currentProfile.display_name) {
+    nameToUse = currentProfile.display_name;
+  }
 
-  if (!nameToUse) {
-    saveStatus.textContent = "New high score! Enter a name to appear on the leaderboard…";
-    saveStatus.style.color = "#9ca3af";
+  // 2) Fall back to cached manual name (from your name dialog),
+  //    if you still use cachedPlayerName
+  if (!nameToUse && cachedPlayerName) {
+    nameToUse = cachedPlayerName;
+  }
 
-    // Ask player for a name
-    const chosenName = await promptForPlayerName();
-
-    if (!chosenName) {
-      // Player closed or skipped dialog; allow manual retry later
-      saveStatus.textContent = "Score not saved. Tap 'Retry Save' if you want to add a name and submit.";
-      saveStatus.style.color = "#9ca3af";
+  // 3) If still no name, prompt (your existing name dialog)
+  if (!nameToUse && finalScore >= HIGH_SCORE_NAME_WARN_THRESHOLD) {
+    const entered = await promptForPlayerName();
+    if (!entered) {
+      // User cancelled
+      saveStatus.textContent = "Score not saved — no name entered.";
+      saveStatus.style.color = "#f97373";
       saveScoreButton.disabled = false;
       return;
     }
-
-    nameToUse = chosenName;
+    nameToUse = entered;
   }
 
-  // Last profanity guard in case cached name was set long ago
-  if (isNameProfane(nameToUse)) {
+  // 4) Profanity filter (still applies to all names)
+  if (nameToUse && isNameProfane(nameToUse)) {
     saveStatus.textContent =
       "That name isn't allowed on the public leaderboard. Please choose a different one.";
     saveStatus.style.color = "#f97373";
     saveScoreButton.disabled = false;
     return;
+  }
+
+  // Final guard: fallback Guest
+  if (!nameToUse) {
+    nameToUse = "Guest";
   }
 
   saveScoreButton.disabled = true;
@@ -1715,6 +1753,7 @@ async function autoSaveScoreIfEligible() {
     saveScoreButton.disabled = false;
   }
 }
+
 
 
 // ---------- Fireworks ----------
@@ -2039,6 +2078,98 @@ function restartGame() {
 }
 
 
+function openAuthModal(mode = "login") {
+  authMode = mode;
+  if (!authModalOverlay) return;
+
+  authModalOverlay.classList.remove("hidden");
+  authEmailInput.value = "";
+  authPasswordInput.value = "";
+  authErrorText.textContent = "";
+
+  if (authMode === "login") {
+    authTitle.textContent = "Sign In";
+    authPrimaryButton.textContent = "Log In";
+    authModeLogin.classList.add("auth-mode-tab--active");
+    authModeSignup.classList.remove("auth-mode-tab--active");
+  } else {
+    authTitle.textContent = "Create Account";
+    authPrimaryButton.textContent = "Sign Up";
+    authModeSignup.classList.add("auth-mode-tab--active");
+    authModeLogin.classList.remove("auth-mode-tab--active");
+  }
+
+  authEmailInput.focus();
+}
+
+function closeAuthModal() {
+  if (!authModalOverlay) return;
+  authModalOverlay.classList.add("hidden");
+}
+
+async function refreshAuthUI() {
+  currentUser = await getCurrentUser();
+  if (currentUser) {
+    currentProfile = await ensureProfileForCurrentUser();
+    const displayName =
+      (currentProfile && currentProfile.display_name) ||
+      (currentUser.email && currentUser.email.split("@")[0]) ||
+      "Player";
+
+    if (userStatusText) {
+      userStatusText.textContent = `Playing as ${displayName}`;
+    }
+    if (userAuthButton) {
+      userAuthButton.textContent = "Log Out";
+    }
+  } else {
+    currentProfile = null;
+    if (userStatusText) {
+      userStatusText.textContent = "Playing as Guest";
+    }
+    if (userAuthButton) {
+      userAuthButton.textContent = "Sign In";
+    }
+  }
+}
+
+
+async function handleAuthPrimaryAction() {
+  const email = (authEmailInput.value || "").trim();
+  const password = authPasswordInput.value || "";
+
+  authErrorText.textContent = "";
+
+  if (!email || !password) {
+    authErrorText.textContent = "Email and password are required.";
+    return;
+  }
+
+  try {
+    if (authMode === "login") {
+      const { error } = await login(email, password);
+      if (error) {
+        authErrorText.textContent = error.message || "Login failed.";
+        return;
+      }
+    } else {
+      const { error } = await signup(email, password);
+      if (error) {
+        authErrorText.textContent = error.message || "Sign up failed.";
+        return;
+      }
+    }
+
+    await refreshAuthUI();
+    closeAuthModal();
+  } catch (err) {
+    console.error("Auth error:", err);
+    authErrorText.textContent = "Something went wrong.";
+  }
+}
+
+
+
 function init() {
   // Main buttons
   startButton.onclick = startGame;
@@ -2130,6 +2261,56 @@ function init() {
     });
   });
 
+  // --- Auth / user UI wiring ---
+  if (userAuthButton) {
+    userAuthButton.addEventListener("click", async () => {
+      if (!currentUser) {
+        openAuthModal("login");
+      } else {
+        await logout();
+        await refreshAuthUI();
+      }
+    });
+  }
+
+  if (authModeLogin && authModeSignup) {
+    authModeLogin.addEventListener("click", () => openAuthModal("login"));
+    authModeSignup.addEventListener("click", () => openAuthModal("signup"));
+  }
+
+  if (authPrimaryButton) {
+    authPrimaryButton.addEventListener("click", handleAuthPrimaryAction);
+  }
+
+  if (authCancelButton) {
+    authCancelButton.addEventListener("click", () => {
+      closeAuthModal();
+    });
+  }
+
+  if (authCloseButton) {
+    authCloseButton.addEventListener("click", () => {
+      closeAuthModal();
+    });
+  }
+
+  if (authModalOverlay) {
+    authModalOverlay.addEventListener("click", (e) => {
+      if (e.target === authModalOverlay) {
+        closeAuthModal();
+      }
+    });
+  }
+
+  // Initial auth state on load
+  refreshAuthUI();
+
+  // If you imported supabase, you can also listen to real-time auth changes:
+  supabase.auth.onAuthStateChange((_event, _session) => {
+    refreshAuthUI();
+  });
+
+  
   // --- How to Play accordion with smooth slide + saved state ---
   const howToPlayToggle = document.getElementById("howToPlayToggle");
   const howToPlayContent = document.getElementById("howToPlayContent");
