@@ -396,7 +396,7 @@ function showHitMessage(delta, tile) {
 
 // ---------- CONSTANTS & STATE ----------
 
-const MIN_SUBMIT_SCORE = 5000; // minimum score required to submit to global leaderboard
+const MIN_SUBMIT_SCORE = 500; // minimum score required to submit to global leaderboard
 const HIGH_SCORE_NAME_WARN_THRESHOLD = MIN_SUBMIT_SCORE;
 
 let gameState = null;
