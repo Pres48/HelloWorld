@@ -38,6 +38,11 @@ const messageArea = document.getElementById("messageArea");
 const startButton = document.getElementById("startButton");
 const endButton = document.getElementById("endButton");
 const restartButton = document.getElementById("restartButton");
+const continueSavedButton = document.getElementById("continueSavedButton");
+
+// Saved run info (for this session / UI)
+let savedRun = null;  // { level, score } or null
+
 
 const bestScoreDisplay = document.getElementById("bestScoreDisplay");
 const bestLevelDisplay = document.getElementById("bestLevelDisplay");
@@ -236,6 +241,7 @@ const nameDialogCancel  = document.getElementById("nameDialogCancel");
 
 // Load cached player name (supports old key + new key)
 let cachedPlayerName = null;
+
 try {
   cachedPlayerName =
     localStorage.getItem("mg_player_name") ||
@@ -310,6 +316,34 @@ function promptForPlayerName() {
   });
 }
 
+function updateContinueButtonVisibility() {
+  if (!continueSavedButton) return;
+
+  if (savedRun && !gameState) {
+    continueSavedButton.classList.remove("hidden");
+  } else {
+    continueSavedButton.classList.add("hidden");
+  }
+}
+
+async function loadSavedRunForUI() {
+  // Only matters if logged in.
+  const user = await getCurrentUser();
+  if (!user) {
+    savedRun = null;
+    updateContinueButtonVisibility();
+    return;
+  }
+
+  const row = await getSavedRunForCurrentUser();
+  if (row && row.level && row.score >= 0) {
+    savedRun = { level: row.level, score: row.score };
+  } else {
+    savedRun = null;
+  }
+
+  updateContinueButtonVisibility();
+}
 
 
 function openHowToPlay() {
@@ -1892,12 +1926,19 @@ function endRound(reason = "normal") {
     startButton.disabled = false;
     startButton.textContent = "Start Game";
     startButton.onclick = startGame;
-    setStartButtonVisual("new");
-
     endButton.disabled = true;
-    setEndButtonVisual(false);
-
     if (levelGoals) levelGoals.textContent = "";
+
+    // Also clear saved run on explicit quit
+    clearSavedRunForCurrentUser()
+      .then(() => {
+        savedRun = null;
+        updateContinueButtonVisibility();
+      })
+      .catch((err) => {
+        console.warn("Failed to clear saved_run:", err);
+      });
+
     return;
   }
 
@@ -1930,6 +1971,20 @@ function endRound(reason = "normal") {
       levelGoals.textContent =
         `Level ${nextLevel} target: +${targetNext.toLocaleString()} pts`;
     }
+
+    // 🧷 Saved Runs: store resume point (start of next level)
+      // Only for logged-in users; guests will be ignored in helper
+      saveSavedRunForCurrentUser(nextLevel, finalScore)
+        .then((row) => {
+          if (row) {
+            savedRun = { level: row.level, score: row.score };
+            updateContinueButtonVisibility();
+          }
+        })
+        .catch((err) => {
+          console.warn("Failed to save saved_run:", err);
+        });
+
 
     // ✅ Backup: Start button still works to advance
     startButton.disabled = false;
@@ -1980,6 +2035,16 @@ function endRound(reason = "normal") {
     startButton.onclick = startGame;
     setStartButtonVisual("new");    // 🔹 same look as “Start New Game”
 
+      
+    // Run is over: clear saved run for this user
+    clearSavedRunForCurrentUser()
+      .then(() => {
+        savedRun = null;
+        updateContinueButtonVisibility();
+      })
+      .catch((err) => {
+        console.warn("Failed to clear saved_run:", err);
+      });
 
     // Show modal for "Run Over"
     openResultModal({
@@ -2135,7 +2200,11 @@ async function refreshAuthUI() {
       userAuthButton.textContent = "Sign In";
     }
   }
+
+  // ⬇️ NEW: load saved run whenever auth changes
+  await loadSavedRunForUI();
 }
+
 
 
 async function handleAuthPrimaryAction() {
@@ -2172,6 +2241,47 @@ async function handleAuthPrimaryAction() {
   }
 }
 
+function resumeSavedRun(level, score) {
+  // Build gameState like startLevel, but using provided level & score
+  const difficulty = getDifficultyForLevel(level);
+  const behavior = getLevelBehavior(level);
+
+  gameState = {
+    level,
+    turnIndex: 0,
+    turns: difficulty.turns,
+    score,                    // cumulative score so far
+    scoreAtLevelStart: score, // baseline for this level
+    missedTurns: 0,
+    multiplier: 1,
+    chainCount: 0,
+    lastTileDelta: 0,
+    grid: generateGrid(level),
+    timePerTurnMs: difficulty.timePerTurnMs,
+    behavior,
+    locked: false,
+    lastClickTurn: -1,
+    timeBankMs: 0,
+    currentTurnStartMs: null,
+    currentTurnDurationMs: null,
+  };
+
+  updateUIFromState();
+  updateLevelGoals();
+  renderGrid();
+  messageArea.textContent = `Resuming at Level ${level} with ${score.toLocaleString()} points.`;
+
+  startButton.disabled = true;
+  restartButton.disabled = false;
+  endButton.disabled = false;
+  saveScoreButton.disabled = true;
+  saveStatus.textContent = "";
+
+  // once a game is active, hide continue button
+  updateContinueButtonVisibility();
+
+  nextTurn();
+}
 
 
 function init() {
@@ -2180,6 +2290,14 @@ function init() {
   restartButton.onclick = restartGame;
   endButton.onclick = endGame;
   saveScoreButton.onclick = handleSaveScore;
+
+  // NEW: Continue Saved Run
+  if (continueSavedButton) {
+    continueSavedButton.onclick = () => {
+      if (!savedRun) return;
+      resumeSavedRun(savedRun.level, savedRun.score);
+    };
+  }
 
   // Initial UI state
   bestScoreDisplay.textContent = "–";
