@@ -1191,7 +1191,7 @@ button:disabled {
 
 .info-btn {
     width: 24px;
-    height: 24px;
+    height: 28px;
     border-radius: 50%;
     border: 1px solid rgba(148, 163, 184, 0.7);
     cursor: pointer;
@@ -1215,14 +1215,6 @@ button:disabled {
 }
 
 .info-btn:hover {
-  /*
-    background: rgba(45, 60, 110, 0.75);
-    box-shadow:
-        0 0 12px rgba(96, 165, 250, 0.65),
-        0 0 4px rgba(59, 130, 246, 0.85);
-
-    transform: translateY(-1px);
-  */
     background: radial-gradient(circle at top left, #2563eb, #020617);
     border-color: rgba(129, 140, 248, 0.9);
     box-shadow:
@@ -1311,9 +1303,9 @@ button:disabled {
 /* Close button */
 .howto-modal-close {
   width: 24px;
-  height: 24px;
+  height: 28px;
   border-radius: 999px;
-  border: none;
+  border: 1px solid rgba(148, 163, 184, 0.7);
   background: rgba(15, 23, 42, 0.8);
   color: #f9fafb;
   font-size: 0.8rem;
@@ -1322,14 +1314,16 @@ button:disabled {
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  /*box-shadow: 0 0 0 1px rgba(148, 163, 184, 0.7);*/
   transition: background 0.15s ease, box-shadow 0.15s ease, transform 0.05s ease;
 }
 
 .howto-modal-close:hover {
-  background: rgba(30, 64, 175, 0.9);
-  box-shadow: 0 0 14px rgba(129, 140, 248, 0.7);
-  transform: translateY(-1px);
+    background: radial-gradient(circle at top left, #2563eb, #020617);
+    border-color: rgba(129, 140, 248, 0.9);
+    box-shadow:
+      0 0 10px rgba(59, 130, 246, 0.7),
+      0 0 25px rgba(79, 70, 229, 0.4);
+    transform: translateY(-1px);
 }
 
 /* Body content */
