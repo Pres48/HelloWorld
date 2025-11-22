@@ -12,8 +12,8 @@ const BONUS_STEPS_MIN = 2;
 const BONUS_STEPS_MAX = 4;
 
 // Chain tiles: base points before chain multiplier
-const CHAIN_MIN = 7; 
-const CHAIN_MAX = 16;
+const CHAIN_MIN = 6; 
+const CHAIN_MAX = 15;
 
 // Risk tiles: random integer between these two
 // You can make this all positive, all negative, or mixed.
@@ -413,7 +413,7 @@ export function resolveTileSelection(tile, state) {
     newState.chainCount += 1;
   } else if (type === TILE_TYPES.BONUS) {
     newState.multiplier = parseFloat(
-      (newState.multiplier + value * 0.25).toFixed(2)
+      (newState.multiplier + value * 0.25).toFixed(2)      // BONUS Multiplier 0.25
     );
     basePoints = 1; // small base
 
