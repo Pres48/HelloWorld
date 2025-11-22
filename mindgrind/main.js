@@ -2306,9 +2306,9 @@ function init() {
   refreshAuthUI();
 
   // If you imported supabase, you can also listen to real-time auth changes:
-  supabase.auth.onAuthStateChange((_event, _session) => {
-    refreshAuthUI();
-  });
+  // supabase.auth.onAuthStateChange((_event, _session) => {
+  //   refreshAuthUI();
+  // });
 
   
   // --- How to Play accordion with smooth slide + saved state ---
