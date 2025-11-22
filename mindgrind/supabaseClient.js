@@ -12,12 +12,14 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   },
 });
 
-// Expose globally for console debugging
+// Expose for console debugging
 window.supabase = supabase;
 
 /* -----------------------------------------------------
-   Helper: get current user (returns null if logged out)
+   Auth helpers
 ----------------------------------------------------- */
+
+// Get current logged-in user (or null)
 export async function getCurrentUser() {
   const { data, error } = await supabase.auth.getUser();
   if (error) {
@@ -27,14 +29,68 @@ export async function getCurrentUser() {
   return data?.user ?? null;
 }
 
+// Create or update a profile row for the current user.
+// Returns the profile (or null if not logged in / error).
+export async function ensureProfileForCurrentUser() {
+  const user = await getCurrentUser();
+  if (!user) return null;
+
+  const email = user.email || "";
+  let baseUsername = email.split("@")[0] || "player";
+
+  // strip weird chars + keep it short
+  baseUsername = baseUsername.replace(/[^a-zA-Z0-9_]/g, "").slice(0, 16) || "player";
+
+  const displayName = baseUsername;
+
+  const { data, error } = await supabase
+    .from("profiles")
+    .upsert(
+      {
+        id: user.id,
+        username: baseUsername,
+        display_name: displayName,
+      },
+      { onConflict: "id" }
+    )
+    .select()
+    .single();
+
+  if (error) {
+    console.warn("ensureProfileForCurrentUser error:", error);
+    return null;
+  }
+
+  return data;
+}
+
+// Fetch profile for the current user (without creating it)
+export async function getProfileForCurrentUser() {
+  const user = await getCurrentUser();
+  if (!user) return null;
+
+  const { data, error } = await supabase
+    .from("profiles")
+    .select("*")
+    .eq("id", user.id)
+    .single();
+
+  if (error) {
+    console.warn("getProfileForCurrentUser error:", error);
+    return null;
+  }
+
+  return data;
+}
+
 /* -----------------------------------------------------
-   Save score (insert or update)
-   - Now safely attaches user_id if logged in
+   Scores: save (insert/update) + fetch leaderboard
 ----------------------------------------------------- */
+
 export async function saveScoreToSupabase(name, score, level, existingId = null) {
   const safeName = name && name.trim() ? name.trim() : "Guest";
 
-  // NEW: get auth user ID (null if guest)
+  // Attach user_id if logged in
   const user = await getCurrentUser();
   const userId = user ? user.id : null;
 
@@ -42,13 +98,13 @@ export async function saveScoreToSupabase(name, score, level, existingId = null)
     name: safeName,
     score,
     level,
-    user_id: userId,   // 👈 attaches user_id when logged in
+    user_id: userId,
   };
 
   let query;
 
   if (existingId) {
-    // Update existing row
+    // Update existing row for this run
     query = supabase
       .from("scores")
       .update(payload)
@@ -56,7 +112,7 @@ export async function saveScoreToSupabase(name, score, level, existingId = null)
       .select("id")
       .single();
   } else {
-    // Insert new row
+    // Insert first row for this run
     query = supabase
       .from("scores")
       .insert(payload)
@@ -74,9 +130,6 @@ export async function saveScoreToSupabase(name, score, level, existingId = null)
   return data.id;
 }
 
-/* -----------------------------------------------------
-   Leaderboard fetch (unchanged)
------------------------------------------------------ */
 export async function fetchTopScores(limit = 15) {
   const { data, error } = await supabase
     .from("scores")
@@ -88,13 +141,13 @@ export async function fetchTopScores(limit = 15) {
     console.error("Supabase fetch leaderboard error:", error);
     throw error;
   }
-
   return data;
 }
 
 /* -----------------------------------------------------
-   Auth helpers (optional)
+   Basic auth actions (used by UI)
 ----------------------------------------------------- */
+
 export async function signup(email, password) {
   return await supabase.auth.signUp({ email, password });
 }
